@@ -1,0 +1,7 @@
+{
+  "id": "snap",
+  "name": "Snap",
+  "version": "${minecraft.plugin.version}",
+  "main": "de.themoep.snap.Snap",
+  "authors": ["Phoenix616"]
+}
