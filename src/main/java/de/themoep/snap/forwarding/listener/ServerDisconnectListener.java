@@ -18,24 +18,24 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.KickedFromServerEvent;
 import de.themoep.snap.Snap;
-import de.themoep.snap.SnapUtils;
-import net.md_5.bungee.api.event.ProxyPingEvent;
+import net.md_5.bungee.api.event.ServerDisconnectEvent;
 
-public class ProxyPingListener extends ForwardingListener {
+public class ServerDisconnectListener extends ForwardingListener {
 
-    public ProxyPingListener(Snap snap) {
+    // TODO: Find better implementation as this has no real Velocity equivalent
+    public ServerDisconnectListener(Snap snap) {
         super(snap);
     }
 
-    @Subscribe
-    public void on(com.velocitypowered.api.event.proxy.ProxyPingEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyPingEvent(
-                convertConnection(event.getConnection()),
-                SnapUtils.convertPing(event.getPing()),
-                (e, throwable) -> {
-                    event.setPing(SnapUtils.convertPing(e.getResponse()));
-                }));
+    @Subscribe(order = PostOrder.LAST)
+    public void on(KickedFromServerEvent event) {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new ServerDisconnectEvent(
+                snap.getPlayer(event.getPlayer()),
+                snap.getServerInfo(event.getServer())
+        ));
     }
 }

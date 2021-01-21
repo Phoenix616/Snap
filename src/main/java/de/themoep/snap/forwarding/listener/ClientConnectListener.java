@@ -18,24 +18,28 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.PreLoginEvent;
 import de.themoep.snap.Snap;
-import de.themoep.snap.SnapUtils;
-import net.md_5.bungee.api.event.ProxyPingEvent;
+import net.kyori.adventure.text.Component;
+import net.md_5.bungee.api.event.ClientConnectEvent;
 
-public class ProxyPingListener extends ForwardingListener {
+public class ClientConnectListener extends ForwardingListener {
 
-    public ProxyPingListener(Snap snap) {
+    // TODO: Find better implementation as this has no real Velocity equivalent
+    public ClientConnectListener(Snap snap) {
         super(snap);
     }
 
-    @Subscribe
-    public void on(com.velocitypowered.api.event.proxy.ProxyPingEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyPingEvent(
-                convertConnection(event.getConnection()),
-                SnapUtils.convertPing(event.getPing()),
-                (e, throwable) -> {
-                    event.setPing(SnapUtils.convertPing(e.getResponse()));
-                }));
+    @Subscribe(order = PostOrder.FIRST)
+    public void on(PreLoginEvent event) {
+        ClientConnectEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new ClientConnectEvent(
+                event.getConnection().getRemoteAddress(),
+                snap.getBungeeAdapter().getProxy().getListener()
+        ));
+        if (e.isCancelled()) {
+            event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("ClientConnectEvent Cancelled")));
+        }
     }
 }

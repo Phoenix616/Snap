@@ -20,22 +20,20 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.event.Subscribe;
 import de.themoep.snap.Snap;
-import de.themoep.snap.SnapUtils;
-import net.md_5.bungee.api.event.ProxyPingEvent;
+import de.themoep.snap.forwarding.SnapServer;
+import net.md_5.bungee.api.event.ServerConnectedEvent;
 
-public class ProxyPingListener extends ForwardingListener {
+public class ServerConnectedListener extends ForwardingListener {
 
-    public ProxyPingListener(Snap snap) {
+    public ServerConnectedListener(Snap snap) {
         super(snap);
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.proxy.ProxyPingEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyPingEvent(
-                convertConnection(event.getConnection()),
-                SnapUtils.convertPing(event.getPing()),
-                (e, throwable) -> {
-                    event.setPing(SnapUtils.convertPing(e.getResponse()));
-                }));
+    public void on(com.velocitypowered.api.event.player.ServerConnectedEvent event) {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new ServerConnectedEvent(
+                snap.getPlayer(event.getPlayer()),
+                new SnapServer(snap, event.getPlayer(), event.getServer()))
+        );
     }
 }

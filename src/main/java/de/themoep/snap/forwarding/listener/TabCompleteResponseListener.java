@@ -19,23 +19,26 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.TabCompleteEvent;
 import de.themoep.snap.Snap;
-import de.themoep.snap.SnapUtils;
-import net.md_5.bungee.api.event.ProxyPingEvent;
+import de.themoep.snap.forwarding.SnapServer;
+import net.md_5.bungee.api.event.TabCompleteResponseEvent;
 
-public class ProxyPingListener extends ForwardingListener {
+public class TabCompleteResponseListener extends ForwardingListener {
 
-    public ProxyPingListener(Snap snap) {
+    public TabCompleteResponseListener(Snap snap) {
         super(snap);
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.proxy.ProxyPingEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyPingEvent(
-                convertConnection(event.getConnection()),
-                SnapUtils.convertPing(event.getPing()),
-                (e, throwable) -> {
-                    event.setPing(SnapUtils.convertPing(e.getResponse()));
-                }));
+    public void on(TabCompleteEvent event) {
+        TabCompleteResponseEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new TabCompleteResponseEvent(
+                event.getPlayer().getCurrentServer().map(s -> new SnapServer(snap, s)).orElse(null),
+                snap.getPlayer(event.getPlayer()),
+                event.getSuggestions()
+        ));
+        if (e.isCancelled()) {
+            event.getSuggestions().clear();
+        }
     }
 }

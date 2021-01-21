@@ -45,7 +45,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,7 +56,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -66,6 +64,7 @@ public class SnapProxyServer extends ProxyServer {
 
     private Field fIdentifierMap;
     private Set<String> channels = new HashSet<>();
+    private final ListenerInfo listener;
     private Collection<ListenerInfo> listeners;
     private Logger logger = Logger.getLogger("Snap");
     private TaskScheduler scheduler;
@@ -74,7 +73,7 @@ public class SnapProxyServer extends ProxyServer {
         this.snap = snap;
         com.velocitypowered.api.proxy.config.ProxyConfig config = snap.getProxy().getConfiguration();
 
-        listeners = Collections.singleton(new ListenerInfo(
+        listener = new ListenerInfo(
                 snap.getProxy().getBoundAddress(),
                 LegacyComponentSerializer.legacySection().serialize(config.getMotd()),
                 config.getShowMaxPlayers(),
@@ -90,7 +89,8 @@ public class SnapProxyServer extends ProxyServer {
                 config.getQueryPort(),
                 config.isQueryEnabled(),
                 false
-        ));
+        );
+        listeners = Collections.singleton(listener);
 
         scheduler = new TaskScheduler() {
 
@@ -153,6 +153,10 @@ public class SnapProxyServer extends ProxyServer {
             e.printStackTrace();
             fIdentifierMap = null;
         }
+    }
+
+    public ListenerInfo getListener() {
+        return listener;
     }
 
     @Override

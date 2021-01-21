@@ -20,18 +20,11 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.ConnectionHandshakeEvent;
-import com.velocitypowered.api.proxy.InboundConnection;
 import de.themoep.snap.Snap;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.config.ListenerInfo;
-import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.PlayerHandshakeEvent;
 import net.md_5.bungee.protocol.packet.Handshake;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.UUID;
 
 public class PlayerHandshakeListener extends ForwardingListener {
 

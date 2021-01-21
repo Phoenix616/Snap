@@ -20,7 +20,6 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.proxy.InboundConnection;
 import de.themoep.snap.Snap;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
@@ -55,7 +54,7 @@ public abstract class ForwardingListener {
 
             @Override
             public ListenerInfo getListener() {
-                return ProxyServer.getInstance().getConfig().getListeners().iterator().next();
+                return snap.getBungeeAdapter().getProxy().getListener();
             }
 
             @Override

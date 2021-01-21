@@ -44,6 +44,11 @@ If you are sure that the plugin will work fine otherwise then you can have it re
 - Some connection handling and related events might not work 100% exactly like on 
   Bungee. They are as close as possible though but if you already have to fiddle with 
   that then its best to create a standalone Velocity plugin tbh.
+- Some events don't work 100% or not at all.  
+  Not working: `TabCompleteEvent`, `ProxyDefineCommandEvent`, `ProxyExceptionEvent`.  
+  Only partially: `ServerDisconnectEvent` (only triggers on kicks),
+  `ClientConnectEvent` (uses Velocity's `LoginEvent` with `PostOrder.FIRST`)
+  `ConnectionInitEvent` (uses Velocity's `LoginEvent` with `PostOrder.EARLY`)
 - **Unsafe** doesn't work.
 
 ## Sounds awesome! How can I get it?
@@ -53,8 +58,8 @@ You can download the jar via [GitHub releases](https://github.com/Phoenix616/Sna
 
 ## Is it open source?
 
-Yes, the base code of Snap is open source! It's licensed under LGPLv3 in order to be
- compatible with the shipped Waterfall/BungeeCord.
+Yes, the base code of Snap is open source! Unless noted otherwise in the source it's licensed 
+ under LGPLv3 in order to be compatible with the shipped Waterfall/BungeeCord.
 
 ```
  Snap

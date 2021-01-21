@@ -22,6 +22,7 @@ import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 
 /**
  * Listeners to manage internal states
@@ -52,5 +53,10 @@ public class SnapListener {
     public void onPlayerQuit(DisconnectEvent event) {
         snap.getPlayers().remove(event.getPlayer().getUniqueId());
         snap.getPlayerNames().remove(event.getPlayer().getUsername());
+    }
+
+    @Subscribe
+    public void onShutdown(ProxyShutdownEvent event) {
+        snap.getBungeeAdapter().disablePlugins();
     }
 }

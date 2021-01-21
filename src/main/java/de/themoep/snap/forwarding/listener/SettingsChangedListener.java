@@ -19,23 +19,18 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.PlayerSettingsChangedEvent;
 import de.themoep.snap.Snap;
-import de.themoep.snap.SnapUtils;
-import net.md_5.bungee.api.event.ProxyPingEvent;
+import net.md_5.bungee.api.event.SettingsChangedEvent;
 
-public class ProxyPingListener extends ForwardingListener {
+public class SettingsChangedListener extends ForwardingListener {
 
-    public ProxyPingListener(Snap snap) {
+    public SettingsChangedListener(Snap snap) {
         super(snap);
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.proxy.ProxyPingEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyPingEvent(
-                convertConnection(event.getConnection()),
-                SnapUtils.convertPing(event.getPing()),
-                (e, throwable) -> {
-                    event.setPing(SnapUtils.convertPing(e.getResponse()));
-                }));
+    public void on(PlayerSettingsChangedEvent event) {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new SettingsChangedEvent(snap.getPlayer(event.getPlayer())));
     }
 }

@@ -27,7 +27,6 @@ import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerConnectRequest;
 import net.md_5.bungee.api.SkinConfiguration;
 import net.md_5.bungee.api.Title;
@@ -75,7 +74,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public ListenerInfo getListener() {
-                return ProxyServer.getInstance().getConfig().getListeners().iterator().next();
+                return snap.getBungeeAdapter().getProxy().getListener();
             }
 
             @Override

@@ -22,7 +22,6 @@ import com.velocitypowered.api.event.Subscribe;
 import de.themoep.snap.Snap;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
@@ -40,7 +39,11 @@ public class PreLoginListener extends ForwardingListener {
 
     @Subscribe
     public void on(com.velocitypowered.api.event.connection.PreLoginEvent event) {
-        PreLoginEvent ple = snap.getBungeeAdapter().getPluginManager().callEvent(new PreLoginEvent(new PendingConnection() {
+        if (!event.getResult().isAllowed()) {
+            return;
+        }
+
+        snap.getBungeeAdapter().getPluginManager().callEvent(new PreLoginEvent(new PendingConnection() {
             @Override
             public String getName() {
                 return event.getUsername();
@@ -58,7 +61,7 @@ public class PreLoginListener extends ForwardingListener {
 
             @Override
             public ListenerInfo getListener() {
-                return ProxyServer.getInstance().getConfig().getListeners().iterator().next();
+                return snap.getBungeeAdapter().getProxy().getListener();
             }
 
             @Override
@@ -135,10 +138,11 @@ public class PreLoginListener extends ForwardingListener {
                 return (Unsafe) snap.unsupported("Unsafe is not supported in Snap!");
             }
         }, (e, t) -> {
-            // TODO: What do we do with this?
+            if (e.isCancelled()) {
+                event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(
+                        BungeeComponentSerializer.get().deserialize(e .getCancelReasonComponents())));
+            }
         }));
-        if (ple.isCancelled()) {
-            event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(BungeeComponentSerializer.get().deserialize(ple.getCancelReasonComponents())));
-        }
+
     }
 }

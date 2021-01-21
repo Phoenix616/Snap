@@ -20,9 +20,9 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.LoginEvent;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
+import net.md_5.bungee.api.event.LoginEvent;
 
 public class LoginListener extends ForwardingListener {
 
@@ -31,18 +31,18 @@ public class LoginListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(LoginEvent event) {
-        net.md_5.bungee.api.event.LoginEvent e = new net.md_5.bungee.api.event.LoginEvent(
-                snap.getPlayer(event.getPlayer()).getPendingConnection(), null);
+    public void on(com.velocitypowered.api.event.connection.LoginEvent event) {
+        LoginEvent e = new LoginEvent(snap.getPlayer(event.getPlayer()).getPendingConnection(), (le, t) -> {
+            if (le.isCancelled() && event.getResult().isAllowed()) {
+                event.setResult(ResultedEvent.ComponentResult.denied(SnapUtils.convertComponent(le.getCancelReasonComponents())));
+            } else if (!le.isCancelled() && !event.getResult().isAllowed()) {
+                event.setResult(ResultedEvent.ComponentResult.allowed());
+            }
+        });
         if (!event.getResult().isAllowed()) {
             e.setCancelled(true);
             event.getResult().getReasonComponent().ifPresent(c -> e.setCancelReason(SnapUtils.convertComponent(c)));
         }
         snap.getBungeeAdapter().getPluginManager().callEvent(e);
-        if (e.isCancelled() && event.getResult().isAllowed()) {
-            event.setResult(ResultedEvent.ComponentResult.denied(SnapUtils.convertComponent(e.getCancelReasonComponents())));
-        } else if (!e.isCancelled() && !event.getResult().isAllowed()) {
-            event.setResult(ResultedEvent.ComponentResult.allowed());
-        }
     }
 }
