@@ -32,7 +32,7 @@ public class Snap {
 
     private Map<UUID, SnapPlayer> players = new ConcurrentHashMap<>();
     private Map<String, SnapPlayer> playerNames = new ConcurrentHashMap<>();
-    private Map<String, net.md_5.bungee.api.config.ServerInfo> servers = new ConcurrentHashMap<>();
+    private Map<String, SnapServerInfo> servers = new ConcurrentHashMap<>();
 
     static {
         LogManager.getLogManager().reset();
@@ -50,7 +50,9 @@ public class Snap {
     public void onProxyInitialization(ProxyInitializeEvent event) throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, InvocationTargetException, IOException {
         if (loadConfig()) {
             bungeeAdapter = new SnapBungeeAdapter(this);
+            bungeeAdapter.registerEvents();
             bungeeAdapter.loadPlugins();
+            getProxy().getEventManager().register(this, new SnapListener(this));
         } else {
             getLogger().error("Unable to load config! Plugin will not enable.");
         }
@@ -100,16 +102,14 @@ public class Snap {
         return p;
     }
 
-    public net.md_5.bungee.api.config.ServerInfo getServerInfo(RegisteredServer server) {
+    public SnapServerInfo getServerInfo(RegisteredServer server) {
         if (server == null) {
             return null;
         }
-        net.md_5.bungee.api.config.ServerInfo s = servers.computeIfAbsent(server.getServerInfo().getName(), u -> new SnapServerInfo(this, server));
-        servers.putIfAbsent(s.getName(), s);
-        return s;
+        return servers.computeIfAbsent(server.getServerInfo().getName(), u -> new SnapServerInfo(this, server));
     }
 
-    public Map<String, net.md_5.bungee.api.config.ServerInfo> getServers() {
+    public Map<String, SnapServerInfo> getServers() {
         return servers;
     }
 

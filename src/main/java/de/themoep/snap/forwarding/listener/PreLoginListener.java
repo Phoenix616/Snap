@@ -1,8 +1,8 @@
-package de.themoep.snap.forwarding;
+package de.themoep.snap.forwarding.listener;
 
 /*
  * Snap
- * Copyright (c) 2020 Max Lee aka Phoenix616 (max@themoep.de)
+ * Copyright (c) 2021 Max Lee aka Phoenix616 (max@themoep.de)
  *
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,13 +18,8 @@ package de.themoep.snap.forwarding;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.DisconnectEvent;
-import com.velocitypowered.api.event.connection.LoginEvent;
-import com.velocitypowered.api.event.connection.PostLoginEvent;
 import de.themoep.snap.Snap;
-import de.themoep.snap.SnapUtils;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ProxyServer;
@@ -33,21 +28,18 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.PreLoginEvent;
 
-import static com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.UUID;
 
-public class ForwardingListener {
-    private final Snap snap;
+public class PreLoginListener extends ForwardingListener {
 
-    public ForwardingListener(Snap snap) {
-        this.snap = snap;
+    public PreLoginListener(Snap snap) {
+        super(snap);
     }
 
     @Subscribe
-    public void onPlayerConnect(com.velocitypowered.api.event.connection.PreLoginEvent event) {
+    public void on(com.velocitypowered.api.event.connection.PreLoginEvent event) {
         PreLoginEvent ple = snap.getBungeeAdapter().getPluginManager().callEvent(new PreLoginEvent(new PendingConnection() {
             @Override
             public String getName() {
@@ -86,9 +78,9 @@ public class ForwardingListener {
 
             @Override
             public boolean isOnlineMode() {
-                if (event.getResult() == PreLoginComponentResult.forceOnlineMode()) {
+                if (event.getResult() == com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOnlineMode()) {
                     return true;
-                } else if (event.getResult() == PreLoginComponentResult.forceOfflineMode()) {
+                } else if (event.getResult() == com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOfflineMode()) {
                     return false;
                 }
                 throw new UnsupportedOperationException("Getting the online mode of a connection on PreLoginEvent is not supported in Snap!");
@@ -97,16 +89,15 @@ public class ForwardingListener {
             @Override
             public void setOnlineMode(boolean onlineMode) {
                 if (onlineMode) {
-                    event.setResult(PreLoginComponentResult.forceOnlineMode());
+                    event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOnlineMode());
                 } else {
-                    event.setResult(PreLoginComponentResult.forceOfflineMode());
+                    event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOfflineMode());
                 }
             }
 
             @Override
             public boolean isLegacy() {
-                snap.unsupported();
-                return false;
+                return event.getConnection().getProtocolVersion().isLegacy();
             }
 
             @Override
@@ -121,12 +112,12 @@ public class ForwardingListener {
 
             @Override
             public void disconnect(String reason) {
-                event.setResult(PreLoginComponentResult.denied(LegacyComponentSerializer.legacySection().deserialize(reason)));
+                event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(LegacyComponentSerializer.legacySection().deserialize(reason)));
             }
 
             @Override
             public void disconnect(BaseComponent... reason) {
-                event.setResult(PreLoginComponentResult.denied(BungeeComponentSerializer.get().deserialize(reason)));
+                event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(BungeeComponentSerializer.get().deserialize(reason)));
             }
 
             @Override
@@ -147,35 +138,7 @@ public class ForwardingListener {
             // TODO: What do we do with this?
         }));
         if (ple.isCancelled()) {
-            event.setResult(PreLoginComponentResult.denied(BungeeComponentSerializer.get().deserialize(ple.getCancelReasonComponents())));
+            event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(BungeeComponentSerializer.get().deserialize(ple.getCancelReasonComponents())));
         }
-    }
-
-    @Subscribe
-    public void onPlayerConnect(LoginEvent event) {
-        net.md_5.bungee.api.event.LoginEvent e = new net.md_5.bungee.api.event.LoginEvent(
-                snap.getPlayer(event.getPlayer()).getPendingConnection(), null);
-        if (!event.getResult().isAllowed()) {
-            e.setCancelled(true);
-            event.getResult().getReasonComponent().ifPresent(c -> {
-                e.setCancelReason(SnapUtils.convertComponent(c));
-            });
-        }
-        snap.getBungeeAdapter().getPluginManager().callEvent(e);
-        if (e.isCancelled() && event.getResult().isAllowed()) {
-            event.setResult(ResultedEvent.ComponentResult.denied(SnapUtils.convertComponent(e.getCancelReasonComponents())));
-        } else if (!e.isCancelled() && !event.getResult().isAllowed()) {
-            event.setResult(ResultedEvent.ComponentResult.allowed());
-        }
-    }
-
-    @Subscribe
-    public void onPlayerConnect(PostLoginEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.PostLoginEvent(snap.getPlayer(event.getPlayer())));
-    }
-
-    @Subscribe
-    public void onPlayerQuit(DisconnectEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.PlayerDisconnectEvent(snap.getPlayer(event.getPlayer())));
     }
 }

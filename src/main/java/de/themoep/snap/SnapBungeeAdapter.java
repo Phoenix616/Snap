@@ -22,9 +22,16 @@ import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
-import de.themoep.snap.forwarding.ForwardingListener;
 import de.themoep.snap.forwarding.SnapCommandSender;
 import de.themoep.snap.forwarding.SnapProxyServer;
+import de.themoep.snap.forwarding.listener.ChatListener;
+import de.themoep.snap.forwarding.listener.LoginListener;
+import de.themoep.snap.forwarding.listener.PlayerDisconnectListener;
+import de.themoep.snap.forwarding.listener.PlayerHandshakeListener;
+import de.themoep.snap.forwarding.listener.PluginMessageListener;
+import de.themoep.snap.forwarding.listener.PostLoginListener;
+import de.themoep.snap.forwarding.listener.PreLoginListener;
+import de.themoep.snap.forwarding.listener.ProxyPingListener;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -43,7 +50,7 @@ public class SnapBungeeAdapter {
     private final File pluginsFolder;
     private final Snap snap;
 
-    public SnapBungeeAdapter(Snap snap) throws ClassNotFoundException, IllegalAccessException, NoSuchFieldException, IOException, NoSuchMethodException, InvocationTargetException {
+    SnapBungeeAdapter(Snap snap) throws ClassNotFoundException, IllegalAccessException, NoSuchFieldException, IOException, NoSuchMethodException, InvocationTargetException {
         this.snap = snap;
 
         pluginsFolder = new File(snap.getDataFolder().toFile(), "plugins");
@@ -55,8 +62,6 @@ public class SnapBungeeAdapter {
         net.md_5.bungee.api.ProxyServer.setInstance(snapProxy);
         getClass().getClassLoader().loadClass(Yaml.class.getName());
         pluginManager = new PluginManager(snapProxy);
-        snap.getProxy().getEventManager().register(snap, new SnapListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ForwardingListener(snap));
 
         // Replace Yaml instance with one with proper class loader
         Field fYaml = pluginManager.getClass().getDeclaredField("yaml");
@@ -69,7 +74,19 @@ public class SnapBungeeAdapter {
         fYaml.set(pluginManager, yaml);
     }
 
-    public void loadPlugins() {
+    void registerEvents() {
+        // Register forwarding events
+        snap.getProxy().getEventManager().register(snap, new ChatListener(snap));
+        snap.getProxy().getEventManager().register(snap, new LoginListener(snap));
+        snap.getProxy().getEventManager().register(snap, new PlayerDisconnectListener(snap));
+        snap.getProxy().getEventManager().register(snap, new PlayerHandshakeListener(snap));
+        snap.getProxy().getEventManager().register(snap, new PluginMessageListener(snap));
+        snap.getProxy().getEventManager().register(snap, new PostLoginListener(snap));
+        snap.getProxy().getEventManager().register(snap, new PreLoginListener(snap));
+        snap.getProxy().getEventManager().register(snap, new ProxyPingListener(snap));
+    }
+
+    void loadPlugins() {
         pluginManager.detectPlugins(pluginsFolder);
         pluginManager.loadPlugins();
         pluginManager.enablePlugins();

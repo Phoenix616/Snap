@@ -21,6 +21,10 @@ package de.themoep.snap;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import com.velocitypowered.api.proxy.server.ServerPing.Players;
+import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer;
+import com.velocitypowered.api.proxy.server.ServerPing.Version;
+import com.velocitypowered.api.util.ModInfo;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.Favicon;
@@ -31,6 +35,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.scheduler.ScheduledTask;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class SnapUtils {
 
@@ -58,12 +63,12 @@ public class SnapUtils {
         return components == null ? Component.empty() : BungeeComponentSerializer.get().deserialize(components);
     }
 
-    public static ServerPing convertPing(com.velocitypowered.api.proxy.server.ServerPing ping) {
+    public static ServerPing convertPing(com.velocitypowered.api.proxy.server.ServerPing vPing) {
         BaseComponent motd = new net.md_5.bungee.api.chat.TextComponent();
-        motd.setExtra(Arrays.asList(convertComponent(ping.getDescriptionComponent())));
-        return new ServerPing(
-                new ServerPing.Protocol(ping.getVersion().getName(), ping.getVersion().getProtocol()),
-                ping.getPlayers().map(p -> new ServerPing.Players(
+        motd.setExtra(Arrays.asList(convertComponent(vPing.getDescriptionComponent())));
+        ServerPing bPing = new ServerPing(
+                new ServerPing.Protocol(vPing.getVersion().getName(), vPing.getVersion().getProtocol()),
+                vPing.getPlayers().map(p -> new ServerPing.Players(
                         p.getMax(),
                         p.getOnline(),
                         p.getSample().stream()
@@ -71,7 +76,33 @@ public class SnapUtils {
                                 .toArray(ServerPing.PlayerInfo[]::new)
                 )).orElse(null),
                 motd,
-                ping.getFavicon().map(f -> Favicon.create(f.getBase64Url())).orElse(null)
+                vPing.getFavicon().map(f -> Favicon.create(f.getBase64Url())).orElse(null)
+        );
+        if (vPing.getModinfo().isPresent()) {
+            bPing.getModinfo().setType(vPing.getModinfo().get().getType());
+            bPing.getModinfo().setModList(vPing.getModinfo().get().getMods().stream()
+                    .map(m -> new ServerPing.ModItem(m.getId(), m.getVersion()))
+                    .collect(Collectors.toList()));
+        }
+
+        return bPing;
+    }
+
+    public static com.velocitypowered.api.proxy.server.ServerPing convertPing(ServerPing ping) {
+        return new com.velocitypowered.api.proxy.server.ServerPing(
+                new Version(ping.getVersion().getProtocol(), ping.getVersion().getName()),
+                ping.getPlayers() != null ? new Players(
+                        ping.getPlayers().getOnline(),
+                        ping.getPlayers().getMax(),
+                        Arrays.stream(ping.getPlayers().getSample())
+                                .map(p -> new com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer(p.getName(), p.getUniqueId()))
+                                .collect(Collectors.toList())
+                ) : null,
+                convertComponent(ping.getDescriptionComponent()),
+                ping.getFaviconObject() != null ? new com.velocitypowered.api.util.Favicon(ping.getFaviconObject().getEncoded()) : null,
+                new ModInfo(ping.getModinfo().getType(), ping.getModinfo().getModList().stream()
+                        .map(m -> new ModInfo.Mod(m.getModid(), m.getVersion()))
+                        .collect(Collectors.toList()))
         );
     }
 

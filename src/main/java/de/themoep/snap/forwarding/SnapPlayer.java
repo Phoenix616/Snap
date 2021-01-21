@@ -80,17 +80,17 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public String getUUID() {
-                return SnapPlayer.this.getUUID();
+                return getUniqueId().toString();
             }
 
             @Override
             public UUID getUniqueId() {
-                return SnapPlayer.this.getUniqueId();
+                return player.getUniqueId();
             }
 
             @Override
             public void setUniqueId(UUID uuid) {
-                snap.unsupported("Setting the UUID of a player is not supported in Snap!");
+                snap.unsupported("Setting the UUID of a player is not supported in Velocity's API!");
             }
 
             @Override
@@ -100,18 +100,17 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public void setOnlineMode(boolean onlineMode) {
-                snap.unsupported("Setting the online mode of a player is not supported in Snap!");
+                snap.unsupported("Setting the online mode of a player is not supported in Velocity's API!");
             }
 
             @Override
             public boolean isLegacy() {
-                snap.unsupported();
-                return false;
+                return player.getProtocolVersion().isLegacy();
             }
 
             @Override
             public InetSocketAddress getAddress() {
-                return SnapPlayer.this.getAddress();
+                return player.getRemoteAddress();
             }
 
             @Override
@@ -126,12 +125,12 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public void disconnect(BaseComponent... reason) {
-                SnapPlayer.this.disconnect(reason);
+                player.disconnect(SnapUtils.convertComponent(reason));
             }
 
             @Override
             public void disconnect(BaseComponent reason) {
-                SnapPlayer.this.disconnect(reason);
+                player.disconnect(SnapUtils.convertComponent(reason));
             }
 
             @Override
@@ -298,12 +297,12 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public String getUUID() {
-        return getUniqueId().toString();
+        return getPendingConnection().getUUID();
     }
 
     @Override
     public UUID getUniqueId() {
-        return player.getUniqueId();
+        return getPendingConnection().getUniqueId();
     }
 
     @Override
@@ -421,12 +420,12 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public InetSocketAddress getAddress() {
-        return player.getRemoteAddress();
+        return getPendingConnection().getAddress();
     }
 
     @Override
     public SocketAddress getSocketAddress() {
-        return getAddress();
+        return getPendingConnection().getSocketAddress();
     }
 
     @Override
@@ -436,12 +435,12 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public void disconnect(BaseComponent... reason) {
-        player.disconnect(SnapUtils.convertComponent(reason));
+        getPendingConnection().disconnect(reason);
     }
 
     @Override
     public void disconnect(BaseComponent reason) {
-        player.disconnect(SnapUtils.convertComponent(reason));
+        getPendingConnection().disconnect(reason);
     }
 
     @Override

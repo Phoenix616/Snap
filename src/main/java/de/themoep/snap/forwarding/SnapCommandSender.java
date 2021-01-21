@@ -24,6 +24,7 @@ import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.event.PermissionCheckEvent;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -85,7 +86,9 @@ public class SnapCommandSender implements net.md_5.bungee.api.CommandSender {
 
     @Override
     public boolean hasPermission(String permission) {
-        return source.hasPermission(permission);
+        return snap.getBungeeAdapter().getPluginManager()
+                .callEvent(new PermissionCheckEvent(this, permission, source.hasPermission(permission)))
+                .hasPermission();
     }
 
     @Override

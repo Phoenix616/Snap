@@ -45,6 +45,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -191,7 +193,7 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public Map<String, ServerInfo> getServers() {
-        return snap.getServers();
+        return snap.getServers().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, o -> (ServerInfo) o.getValue()));
     }
 
     @Override
