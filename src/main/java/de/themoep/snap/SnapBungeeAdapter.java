@@ -34,7 +34,6 @@ import de.themoep.snap.forwarding.listener.PlayerHandshakeListener;
 import de.themoep.snap.forwarding.listener.PluginMessageListener;
 import de.themoep.snap.forwarding.listener.PostLoginListener;
 import de.themoep.snap.forwarding.listener.PreLoginListener;
-import de.themoep.snap.forwarding.listener.ProxyDefineCommandListener;
 import de.themoep.snap.forwarding.listener.ProxyPingListener;
 import de.themoep.snap.forwarding.listener.ProxyQueryListener;
 import de.themoep.snap.forwarding.listener.ProxyReloadListener;

@@ -7,12 +7,28 @@ This is the Seriously Necessary Adapter Plugin to enable plugins written against
 
 Simply add the Bungee plugins into the plugins folder inside the Snap plugin folder.
 
-Snap will load the plugins from there and translate methods, classes as well as event
- calls.
+Snap will use it's own instance of BungeeCord's plugin manager to load the plugins 
+ from there and translate BungeeCord methods, classes as well as event calls to the 
+ respective Velocity ones and vice versa.
 
+## Why?
+
+Originally I wanted to document the Velocity equivalents to Bungee events, methods
+ and classes. This evolved into the idea of writing a converter for source code which
+ led me to decide to try to make a plugin which can directly load Bungee plugins.
+ 
+Seeing as the proxies don't have too much logic that seems to have worked although
+ it is definitely a lot more inefficient than just running native Velocity plugins 
+ due lots of classes being in need of getting translated on the fly.
+ 
+Technically this could be made in a way that is a lot more efficient by directly 
+ modifying the Velocity or BungeeCord source code to extend the respective other
+ classes but in practice that massively increases the work required to get this
+ plugin running, and that's all I wanted to do for now.
+ 
 ## What works?
 
-Most of it (hopefully). I mean that's the goal...
+Most of it (hopefully). I mean that's the goal... make sure to report any issues!
 
 ## What doesn't work?
 
@@ -40,7 +56,10 @@ If you are sure that the plugin will work fine otherwise then you can have it re
 - Some **ProxyConfig** settings don't exist on Velocity or aren't exposed in the API so 
   they return some sensible defaults which should reflect the proxy's state.
 - Registering commands after a plugin was enabled. I currently have no good way to hook
-  into this besides straight up modifying the PluginManager class
+  into this besides straight up modifying the PluginManager class which I would like to
+  avoid.
+- Velocity plugins and Bungee plugins are not available to each other via the respective
+  PluginManager APIs and as dependencies. Their classes should be accessible though.
 - Some connection handling and related events might not work 100% exactly like on 
   Bungee. They are as close as possible though but if you already have to fiddle with 
   that then its best to create a standalone Velocity plugin tbh.
@@ -55,6 +74,16 @@ If you are sure that the plugin will work fine otherwise then you can have it re
 
 You can download the jar via [GitHub releases](https://github.com/Phoenix616/Snap/releases)
  or get builds from the latest commits from the [Minebench.de Jenkins](https://ci.minebench.de/job/Snap/).
+ 
+## How can I support the project?
+
+For the start trying out the plugin and reporting what other plugins work and don't work
+ would already help a ton figuring out what work is still needed.
+ 
+Of course I would also appreciate [monetary help](https://tip.phoenix616.dev) if the plugin
+ has helped you transition to Velocity either by directly using it or referencing its code to 
+ adapt Bungee plugins to get running on Velocity natively. (Did you know that GitHub is still 
+ doubling donations to [my GitHub Sponsors page](https://ghsponsor.phoenix616.dev)? 😉)
 
 ## Is it open source?
 
