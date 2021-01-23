@@ -76,7 +76,10 @@ public class PreLoginListener extends ForwardingListener {
 
             @Override
             public void setUniqueId(UUID uuid) {
-                snap.unsupported("Setting UUID of a connection on PreLoginEvent is not supported in Snap!");
+                if (event.getResult() == com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOnlineMode()) {
+                    throw new IllegalStateException("Can only set uuid when online mode is false");
+                }
+                snap.cacheUuidForGameprofile(event.getUsername(), uuid);
             }
 
             @Override

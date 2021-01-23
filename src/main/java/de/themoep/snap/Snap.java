@@ -1,5 +1,7 @@
 package de.themoep.snap;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
 public class Snap {
@@ -33,6 +36,8 @@ public class Snap {
     private Map<UUID, SnapPlayer> players = new ConcurrentHashMap<>();
     private Map<String, SnapPlayer> playerNames = new ConcurrentHashMap<>();
     private Map<String, SnapServerInfo> servers = new ConcurrentHashMap<>();
+
+    private Cache<String, UUID> gameprofileUuidCache = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.SECONDS).build();
 
     static {
         LogManager.getLogManager().reset();
@@ -118,5 +123,17 @@ public class Snap {
             throw new UnsupportedOperationException(message.length > 0 ? String.join("\n", message): "Not implemented (yet)!");
         }
         return null;
+    }
+
+    public void cacheUuidForGameprofile(String username, UUID uuid) {
+        gameprofileUuidCache.put(username, uuid);
+    }
+
+    public UUID pullCachedUuidForUsername(String username) {
+        UUID playerId = gameprofileUuidCache.getIfPresent(username);
+        if (playerId != null) {
+            gameprofileUuidCache.invalidate(username);
+        }
+        return playerId;
     }
 }

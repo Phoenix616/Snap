@@ -22,7 +22,11 @@ import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.util.GameProfile;
+
+import java.util.UUID;
 
 /**
  * Listeners to manage internal states
@@ -58,5 +62,13 @@ public class SnapListener {
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
         snap.getBungeeAdapter().disablePlugins();
+    }
+
+    @Subscribe
+    public void onGameprofileRequest(GameProfileRequestEvent event) {
+        UUID playerId = snap.pullCachedUuidForUsername(event.getUsername());
+        if (playerId != null && !event.getGameProfile().getId().equals(playerId)) {
+            event.setGameProfile(new GameProfile(playerId, event.getGameProfile().getName(), event.getGameProfile().getProperties()));
+        }
     }
 }

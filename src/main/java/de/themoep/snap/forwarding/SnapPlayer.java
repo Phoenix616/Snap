@@ -89,7 +89,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public void setUniqueId(UUID uuid) {
-                snap.unsupported("Setting the UUID of a player is not supported in Velocity's API!");
+                throw new IllegalStateException("Can only set uuid while state is username");
             }
 
             @Override
@@ -99,7 +99,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public void setOnlineMode(boolean onlineMode) {
-                snap.unsupported("Setting the online mode of a player is not supported in Velocity's API!");
+                throw new IllegalStateException("Can only set online mode while state is username");
             }
 
             @Override
