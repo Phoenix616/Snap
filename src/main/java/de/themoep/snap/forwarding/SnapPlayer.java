@@ -240,7 +240,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
                         status = ServerConnectRequest.Result.ALREADY_CONNECTING;
                         break;
                     case CONNECTION_CANCELLED:
-                        status = ServerConnectRequest.Result.FAIL;
+                        status = ServerConnectRequest.Result.EVENT_CANCEL;
                         break;
                     case SERVER_DISCONNECTED:
                     default:
