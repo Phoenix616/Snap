@@ -67,7 +67,7 @@ public class SnapListener {
     @Subscribe
     public void onGameprofileRequest(GameProfileRequestEvent event) {
         UUID playerId = snap.pullCachedUuidForUsername(event.getUsername());
-        if (playerId != null && !event.getGameProfile().getId().equals(playerId)) {
+        if (playerId != null && !event.isOnlineMode() && !event.getGameProfile().getId().equals(playerId)) {
             event.setGameProfile(new GameProfile(playerId, event.getGameProfile().getName(), event.getGameProfile().getProperties()));
         }
     }
