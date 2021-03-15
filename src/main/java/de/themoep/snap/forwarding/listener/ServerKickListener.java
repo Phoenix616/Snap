@@ -49,12 +49,16 @@ public class ServerKickListener extends ForwardingListener {
         snap.getBungeeAdapter().getPluginManager().callEvent(e);
         if (e.isCancelled()) {
             if (e.getCancelServer() != null) {
-                event.setResult(KickedFromServerEvent.RedirectPlayer.create(((SnapServerInfo) e.getCancelServer()).getServer()));
+                event.setResult(KickedFromServerEvent.RedirectPlayer.create(((SnapServerInfo) e.getCancelServer()).getServer(), SnapUtils.convertComponent(e.getKickReasonComponent())));
             } else {
                 event.setResult(KickedFromServerEvent.DisconnectPlayer.create(SnapUtils.convertComponent(e.getKickReasonComponent())));
             }
-        } else {
+        } else if (event.getResult() instanceof KickedFromServerEvent.Notify) {
             event.setResult(KickedFromServerEvent.Notify.create(SnapUtils.convertComponent(e.getKickReasonComponent())));
+        } else if (event.getResult() instanceof KickedFromServerEvent.RedirectPlayer) {
+            event.setResult(KickedFromServerEvent.RedirectPlayer.create(((KickedFromServerEvent.RedirectPlayer) event.getResult()).getServer(), SnapUtils.convertComponent(e.getKickReasonComponent())));
+        } else if (event.getResult() instanceof KickedFromServerEvent.DisconnectPlayer) {
+            event.setResult(KickedFromServerEvent.DisconnectPlayer.create(SnapUtils.convertComponent(e.getKickReasonComponent())));
         }
     }
 
