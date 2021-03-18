@@ -197,7 +197,7 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public Map<String, ServerInfo> getServers() {
-        return snap.getServers().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, o -> (ServerInfo) o.getValue()));
+        return snap.getProxy().getAllServers().stream().map(snap::getServerInfo).collect(Collectors.toMap(SnapServerInfo::getName, s -> s));
     }
 
     @Override
