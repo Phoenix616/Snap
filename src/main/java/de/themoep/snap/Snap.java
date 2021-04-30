@@ -54,6 +54,10 @@ public class Snap {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, InvocationTargetException, IOException {
         if (loadConfig()) {
+            if (!config.has("stats-id") || config.getString("stats-id").isEmpty()) {
+                config.set("stats-id", UUID.randomUUID().toString());
+                config.save();
+            }
             bungeeAdapter = new SnapBungeeAdapter(this);
             bungeeAdapter.registerEvents();
             bungeeAdapter.loadPlugins();
@@ -75,6 +79,10 @@ public class Snap {
             return true;
         }
         return false;
+    }
+
+    public PluginConfig getConfig() {
+        return config;
     }
 
     public ProxyServer getProxy() {

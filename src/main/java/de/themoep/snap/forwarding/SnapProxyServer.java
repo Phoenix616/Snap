@@ -62,6 +62,7 @@ import java.util.stream.Collectors;
 public class SnapProxyServer extends ProxyServer {
     private final Snap snap;
 
+    private String statsId;
     private Field fIdentifierMap;
     private Set<String> channels = new HashSet<>();
     private final ListenerInfo listener;
@@ -72,6 +73,11 @@ public class SnapProxyServer extends ProxyServer {
     public SnapProxyServer(Snap snap) {
         this.snap = snap;
         com.velocitypowered.api.proxy.config.ProxyConfig config = snap.getProxy().getConfiguration();
+
+        statsId = snap.getConfig().getString("stats-id");
+        if (statsId == null) {
+            statsId = UUID.randomUUID().toString();
+        }
 
         listener = new ListenerInfo(
                 snap.getProxy().getBoundAddress(),
@@ -356,7 +362,7 @@ public class SnapProxyServer extends ProxyServer {
 
             @Override
             public String getUuid() {
-                return UUID.randomUUID().toString();
+                return statsId;
             }
 
             @Override
