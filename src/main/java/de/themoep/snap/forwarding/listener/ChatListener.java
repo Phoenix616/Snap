@@ -32,12 +32,13 @@ public class ChatListener extends ForwardingListener {
 
     @Subscribe
     public void on(PlayerChatEvent event) {
-        SnapPlayer player = snap.getPlayer(event.getPlayer());
-        ChatEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new ChatEvent(player, player.getServer(), event.getMessage()));
+        SnapPlayer player = snap.getPlayer(event.player());
+        ChatEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new ChatEvent(player, player.getServer(), event.currentMessage()));
         if (e.isCancelled()) {
-            event.setResult(PlayerChatEvent.ChatResult.denied());
-        } else if (!e.getMessage().equals(event.getMessage())) {
-            event.setResult(PlayerChatEvent.ChatResult.message(e.getMessage()));
+            event.setResult(PlayerChatEvent.GenericResult.denied());
+        }
+        if (!e.getMessage().equals(event.currentMessage())) {
+            event.setCurrentMessage(e.getMessage());
         }
     }
 }

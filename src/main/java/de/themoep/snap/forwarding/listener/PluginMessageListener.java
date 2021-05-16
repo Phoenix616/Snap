@@ -19,9 +19,8 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.PluginMessageEvent.ForwardResult;
-import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.ServerConnection;
+import com.velocitypowered.api.proxy.connection.Player;
+import com.velocitypowered.api.proxy.connection.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.themoep.snap.Snap;
 import de.themoep.snap.forwarding.SnapServer;
@@ -36,13 +35,15 @@ public class PluginMessageListener extends ForwardingListener {
 
     @Subscribe
     public void on(com.velocitypowered.api.event.connection.PluginMessageEvent event) {
-        Connection sender = convert(event.getSource(), event.getTarget());
-        Connection receiver = convert(event.getTarget(), event.getSource());
+        Connection sender = convert(event.source(), event.sink());
+        Connection receiver = convert(event.sink(), event.source());
 
-        PluginMessageEvent e = new PluginMessageEvent(sender, receiver, event.getIdentifier().getId(), event.getData());
-        e.setCancelled(!event.getResult().isAllowed());
+        PluginMessageEvent e = new PluginMessageEvent(sender, receiver, event.channel().toString(), event.rawMessage());
+        e.setCancelled(!event.result().isAllowed());
         snap.getBungeeAdapter().getPluginManager().callEvent(e);
-        event.setResult(e.isCancelled() ? ForwardResult.handled() : ForwardResult.forward());
+        event.setResult(e.isCancelled()
+                ? com.velocitypowered.api.event.connection.PluginMessageEvent.GenericResult.denied()
+                : com.velocitypowered.api.event.connection.PluginMessageEvent.GenericResult.allowed());
     }
 
     private Connection convert(Object o, Object other) {
@@ -51,10 +52,10 @@ public class PluginMessageListener extends ForwardingListener {
         } else if (o instanceof ServerConnection) {
             return new SnapServer(snap, (ServerConnection) o);
         } else if (o instanceof RegisteredServer) {
-            if (other instanceof Player && ((Player) other).getCurrentServer().isPresent() && ((Player) other).getCurrentServer().get().getServer() == o) {
-                return new SnapServer(snap, ((Player) other).getCurrentServer().get());
-            } else if (!((RegisteredServer) o).getPlayersConnected().isEmpty()) {
-                return new SnapServer(snap, ((RegisteredServer) o).getPlayersConnected().iterator().next().getCurrentServer().get());
+            if (other instanceof Player && ((Player) other).connectedServer() != null && ((Player) other).connectedServer().serverInfo() == o) {
+                return new SnapServer(snap, ((Player) other).connectedServer());
+            } else if (!((RegisteredServer) o).connectedPlayers().isEmpty()) {
+                return new SnapServer(snap, ((RegisteredServer) o).connectedPlayers().iterator().next().connectedServer());
             }
         }
         return null;

@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
-import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.connection.Player;
 import de.themoep.snap.forwarding.SnapCommandSender;
 import de.themoep.snap.forwarding.SnapProxyServer;
 import de.themoep.snap.forwarding.listener.ChatListener;
@@ -45,6 +45,7 @@ import de.themoep.snap.forwarding.listener.ServerSwitchListener;
 import de.themoep.snap.forwarding.listener.SettingsChangedListener;
 import de.themoep.snap.forwarding.listener.TabCompleteResponseListener;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -56,6 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Handler;
@@ -92,27 +94,27 @@ public class SnapBungeeAdapter {
 
     void registerEvents() {
         // Register forwarding events
-        snap.getProxy().getEventManager().register(snap, new ChatListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ClientConnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ConnectionInitListener(snap));
-        snap.getProxy().getEventManager().register(snap, new LoginListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PlayerDisconnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PlayerHandshakeListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PluginMessageListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PostLoginListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PreLoginListener(snap));
-        // TODO snap.getProxy().getEventManager().register(snap, new ProxyDefineCommandListener(snap)); hard to convert :S
-        snap.getProxy().getEventManager().register(snap, new ProxyPingListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ProxyQueryListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ProxyReloadListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerConnectedListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerConnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerDisconnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerKickListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerSwitchListener(snap));
-        snap.getProxy().getEventManager().register(snap, new SettingsChangedListener(snap));
-        // TODO snap.getProxy().getEventManager().register(snap, new TabCompleteListener(snap)); no real Velocity equivalent
-        snap.getProxy().getEventManager().register(snap, new TabCompleteResponseListener(snap));
+        snap.getProxy().eventManager().register(snap, new ChatListener(snap));
+        snap.getProxy().eventManager().register(snap, new ClientConnectListener(snap));
+        snap.getProxy().eventManager().register(snap, new ConnectionInitListener(snap));
+        snap.getProxy().eventManager().register(snap, new LoginListener(snap));
+        snap.getProxy().eventManager().register(snap, new PlayerDisconnectListener(snap));
+        snap.getProxy().eventManager().register(snap, new PlayerHandshakeListener(snap));
+        snap.getProxy().eventManager().register(snap, new PluginMessageListener(snap));
+        snap.getProxy().eventManager().register(snap, new PostLoginListener(snap));
+        snap.getProxy().eventManager().register(snap, new PreLoginListener(snap));
+        // TODO snap.getProxy().eventManager().register(snap, new ProxyDefineCommandListener(snap)); hard to convert :S
+        snap.getProxy().eventManager().register(snap, new ProxyPingListener(snap));
+        snap.getProxy().eventManager().register(snap, new ProxyQueryListener(snap));
+        snap.getProxy().eventManager().register(snap, new ProxyReloadListener(snap));
+        snap.getProxy().eventManager().register(snap, new ServerConnectedListener(snap));
+        snap.getProxy().eventManager().register(snap, new ServerConnectListener(snap));
+        snap.getProxy().eventManager().register(snap, new ServerDisconnectListener(snap));
+        snap.getProxy().eventManager().register(snap, new ServerKickListener(snap));
+        snap.getProxy().eventManager().register(snap, new ServerSwitchListener(snap));
+        snap.getProxy().eventManager().register(snap, new SettingsChangedListener(snap));
+        // TODO snap.getProxy().eventManager().register(snap, new TabCompleteListener(snap)); no real Velocity equivalent
+        snap.getProxy().eventManager().register(snap, new TabCompleteResponseListener(snap));
     }
 
     void loadPlugins() {
@@ -120,11 +122,11 @@ public class SnapBungeeAdapter {
         pluginManager.loadPlugins();
         pluginManager.enablePlugins();
 
-        CommandManager cm = snap.getProxy().getCommandManager();
+        CommandManager cm = snap.getProxy().commandManager();
         for (Map.Entry<String, Command> e : pluginManager.getCommands()) {
             Command command = e.getValue();
             cm.register(
-                    cm.metaBuilder(command.getName()).aliases(command.getAliases()).build(),
+                    cm.createMetaBuilder(command.getName()).aliases(command.getAliases()).build(),
                     new SimpleCommand() {
 
                         @Override

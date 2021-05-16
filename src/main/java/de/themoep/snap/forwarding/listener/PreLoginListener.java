@@ -19,13 +19,13 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.PreLoginEvent;
 import de.themoep.snap.Snap;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
-import net.md_5.bungee.api.event.PreLoginEvent;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -38,30 +38,30 @@ public class PreLoginListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.connection.PreLoginEvent event) {
-        if (!event.getResult().isAllowed()) {
+    public void on(PreLoginEvent event) {
+        if (!event.result().isAllowed()) {
             return;
         }
 
-        snap.getBungeeAdapter().getPluginManager().callEvent(new PreLoginEvent(new PendingConnection() {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.PreLoginEvent(new PendingConnection() {
             @Override
             public String getName() {
-                return event.getUsername();
+                return event.username();
             }
 
             @Override
             public int getVersion() {
-                return event.getConnection().getProtocolVersion().getProtocol();
+                return event.connection().protocolVersion().protocol();
             }
 
             @Override
             public InetSocketAddress getVirtualHost() {
-                return event.getConnection().getVirtualHost().orElse(null);
+                return event.connection().connectedHostname();
             }
 
             @Override
             public ListenerInfo getListener() {
-                return snap.getBungeeAdapter().getProxy().getListener();
+                return snap.getBungeeAdapter().getProxy().getListener(event.connection().connectedHostname());
             }
 
             @Override
@@ -76,54 +76,45 @@ public class PreLoginListener extends ForwardingListener {
 
             @Override
             public void setUniqueId(UUID uuid) {
-                if (event.getResult() == com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOnlineMode()) {
+                if (event.onlineMode()) {
                     throw new IllegalStateException("Can only set uuid when online mode is false");
                 }
-                snap.cacheUuidForGameprofile(event.getUsername(), uuid);
+                snap.cacheUuidForGameprofile(event.username(), uuid);
             }
 
             @Override
             public boolean isOnlineMode() {
-                if (event.getResult() == com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOnlineMode()) {
-                    return true;
-                } else if (event.getResult() == com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOfflineMode()) {
-                    return false;
-                }
-                throw new UnsupportedOperationException("Getting the online mode of a connection on PreLoginEvent is not supported in Snap!");
+                return event.onlineMode();
             }
 
             @Override
             public void setOnlineMode(boolean onlineMode) {
-                if (onlineMode) {
-                    event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOnlineMode());
-                } else {
-                    event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.forceOfflineMode());
-                }
+                event.setOnlineMode(onlineMode);
             }
 
             @Override
             public boolean isLegacy() {
-                return event.getConnection().getProtocolVersion().isLegacy();
+                return event.connection().protocolVersion().isLegacy();
             }
 
             @Override
             public InetSocketAddress getAddress() {
-                return event.getConnection().getRemoteAddress();
+                return getSocketAddress() instanceof InetSocketAddress ? (InetSocketAddress) getSocketAddress() : null;
             }
 
             @Override
             public SocketAddress getSocketAddress() {
-                return getAddress();
+                return event.connection().remoteAddress();
             }
 
             @Override
             public void disconnect(String reason) {
-                event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(LegacyComponentSerializer.legacySection().deserialize(reason)));
+                event.setResult(PreLoginEvent.ComponentResult.denied(LegacyComponentSerializer.legacySection().deserialize(reason)));
             }
 
             @Override
             public void disconnect(BaseComponent... reason) {
-                event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(BungeeComponentSerializer.get().deserialize(reason)));
+                event.setResult(PreLoginEvent.ComponentResult.denied(BungeeComponentSerializer.get().deserialize(reason)));
             }
 
             @Override
@@ -133,7 +124,7 @@ public class PreLoginListener extends ForwardingListener {
 
             @Override
             public boolean isConnected() {
-                return event.getConnection().isActive();
+                return event.connection().isActive();
             }
 
             @Override
@@ -142,8 +133,7 @@ public class PreLoginListener extends ForwardingListener {
             }
         }, (e, t) -> {
             if (e.isCancelled()) {
-                event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(
-                        BungeeComponentSerializer.get().deserialize(e .getCancelReasonComponents())));
+                event.setResult(PreLoginEvent.ComponentResult.denied(BungeeComponentSerializer.get().deserialize(e .getCancelReasonComponents())));
             }
         }));
 

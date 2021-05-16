@@ -19,7 +19,7 @@ package de.themoep.snap.forwarding;
  */
 
 import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.proxy.ConsoleCommandSource;
+import com.velocitypowered.api.command.ConsoleCommandSource;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;

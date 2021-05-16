@@ -19,8 +19,8 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.lifecycle.ProxyReloadEvent;
 import de.themoep.snap.Snap;
-import net.md_5.bungee.api.event.ProxyReloadEvent;
 
 public class ProxyReloadListener extends ForwardingListener {
 
@@ -29,7 +29,7 @@ public class ProxyReloadListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.proxy.ProxyReloadEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyReloadEvent(snap.getBungeeAdapter().getProxy().getConsole()));
+    public void on(ProxyReloadEvent event) {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.ProxyReloadEvent(snap.getBungeeAdapter().getProxy().getConsole()));
     }
 }

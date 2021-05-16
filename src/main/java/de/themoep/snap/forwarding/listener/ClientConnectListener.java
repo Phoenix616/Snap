@@ -20,7 +20,7 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.PreLoginEvent;
+import com.velocitypowered.api.event.player.PreLoginEvent;
 import de.themoep.snap.Snap;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.event.ClientConnectEvent;
@@ -35,11 +35,11 @@ public class ClientConnectListener extends ForwardingListener {
     @Subscribe(order = PostOrder.FIRST)
     public void on(PreLoginEvent event) {
         ClientConnectEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new ClientConnectEvent(
-                event.getConnection().getRemoteAddress(),
-                snap.getBungeeAdapter().getProxy().getListener()
+                event.connection().remoteAddress(),
+                snap.getBungeeAdapter().getProxy().getListener(event.connection().connectedHostname())
         ));
         if (e.isCancelled()) {
-            event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("ClientConnectEvent Cancelled")));
+            event.setResult(PreLoginEvent.ComponentResult.denied(Component.text("ClientConnectEvent Cancelled")));
         }
     }
 }

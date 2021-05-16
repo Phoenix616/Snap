@@ -33,12 +33,12 @@ public class ServerConnectListener extends ForwardingListener {
     @Subscribe
     public void on(ServerPreConnectEvent event) {
         ServerConnectEvent e = new ServerConnectEvent(
-                snap.getPlayer(event.getPlayer()),
-                event.getResult().getServer().map(snap::getServerInfo).orElse(null),
+                snap.getPlayer(event.player()),
+                event.result().target() != null ? snap.getServerInfo(event.result().target()) : null,
                 ServerConnectEvent.Reason.UNKNOWN,
                 null
         );
-        e.setCancelled(!event.getResult().isAllowed());
+        e.setCancelled(!event.result().isAllowed());
         snap.getBungeeAdapter().getPluginManager().callEvent(e);
         if (e.isCancelled()) {
             event.setResult(ServerPreConnectEvent.ServerResult.denied());

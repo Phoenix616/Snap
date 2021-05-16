@@ -18,7 +18,7 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.proxy.InboundConnection;
+import com.velocitypowered.api.proxy.connection.InboundConnection;
 import de.themoep.snap.Snap;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -44,17 +44,17 @@ public abstract class ForwardingListener {
 
             @Override
             public int getVersion() {
-                return connection.getProtocolVersion().getProtocol();
+                return connection.protocolVersion().protocol();
             }
 
             @Override
             public InetSocketAddress getVirtualHost() {
-                return connection.getVirtualHost().orElse(null);
+                return connection.connectedHostname();
             }
 
             @Override
             public ListenerInfo getListener() {
-                return snap.getBungeeAdapter().getProxy().getListener();
+                return snap.getBungeeAdapter().getProxy().getListener(connection.connectedHostname());
             }
 
             @Override
@@ -84,17 +84,17 @@ public abstract class ForwardingListener {
 
             @Override
             public boolean isLegacy() {
-                return connection.getProtocolVersion().isLegacy();
+                return connection.protocolVersion().isLegacy();
             }
 
             @Override
             public InetSocketAddress getAddress() {
-                return connection.getRemoteAddress();
+                return getSocketAddress() instanceof InetSocketAddress ? (InetSocketAddress) getSocketAddress() : null;
             }
 
             @Override
             public SocketAddress getSocketAddress() {
-                return getAddress();
+                return connection.remoteAddress();
             }
 
             @Override

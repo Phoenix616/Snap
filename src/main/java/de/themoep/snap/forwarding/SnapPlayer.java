@@ -18,7 +18,7 @@ package de.themoep.snap.forwarding;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.connection.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.util.ModInfo;
 import de.themoep.snap.Snap;
@@ -44,7 +44,6 @@ import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -59,22 +58,22 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
         connection = new PendingConnection() {
             @Override
             public String getName() {
-                return player.getUsername();
+                return player.username();
             }
 
             @Override
             public int getVersion() {
-                return player.getProtocolVersion().getProtocol();
+                return player.protocolVersion().protocol();
             }
 
             @Override
             public InetSocketAddress getVirtualHost() {
-                return player.getVirtualHost().orElse(null);
+                return player.connectedHostname();
             }
 
             @Override
             public ListenerInfo getListener() {
-                return snap.getBungeeAdapter().getProxy().getListener();
+                return snap.getBungeeAdapter().getProxy().getConfig().getListeners().iterator().next();
             }
 
             @Override
@@ -84,7 +83,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public UUID getUniqueId() {
-                return player.getUniqueId();
+                return player.id();
             }
 
             @Override
@@ -94,7 +93,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public boolean isOnlineMode() {
-                return player.isOnlineMode();
+                return player.onlineMode();
             }
 
             @Override
@@ -104,17 +103,17 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public boolean isLegacy() {
-                return player.getProtocolVersion().isLegacy();
+                return player.protocolVersion().isLegacy();
             }
 
             @Override
             public InetSocketAddress getAddress() {
-                return player.getRemoteAddress();
+                return getSocketAddress() instanceof InetSocketAddress ? (InetSocketAddress) getSocketAddress() : null;
             }
 
             @Override
             public SocketAddress getSocketAddress() {
-                return getAddress();
+                return player.remoteAddress();
             }
 
             @Override
@@ -142,7 +141,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
                 return (Unsafe) snap.unsupported("Unsafe is not supported by Snap!");
             }
         };
-        displayName = player.getUsername();
+        displayName = player.username();
     }
 
     public Player getPlayer() {
@@ -175,7 +174,10 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public void connect(ServerInfo target) {
-        snap.getProxy().getServer(target.getName()).ifPresent(s -> player.createConnectionRequest(s).fireAndForget());
+        RegisteredServer server = snap.getProxy().server(target.getName());
+        if (server != null) {
+            player.createConnectionRequest(server).fireAndForget();
+        }
     }
 
     @Override
@@ -186,9 +188,9 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public void connect(ServerInfo target, Callback<Boolean> callback) {
-        Optional<RegisteredServer> server = snap.getProxy().getServer(target.getName());
-        if (server.isPresent()) {
-            player.createConnectionRequest(server.get()).connectWithIndication().thenAccept(r -> callback.done(r, null));
+        RegisteredServer server = snap.getProxy().server(target.getName());
+        if (server != null) {
+            player.createConnectionRequest(server).connectWithIndication().thenAccept(r -> callback.done(r, null));
         } else {
             callback.done(false, null);
         }
@@ -225,11 +227,11 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public void connect(ServerConnectRequest request) {
-        Optional<RegisteredServer> server = snap.getProxy().getServer(request.getTarget().getName());
-        if (server.isPresent()) {
-            player.createConnectionRequest(server.get()).connect().thenAccept(r -> {
+        RegisteredServer server = snap.getProxy().server(request.getTarget().getName());
+        if (server != null) {
+            player.createConnectionRequest(server).connect().thenAccept(r -> {
                 ServerConnectRequest.Result status;
-                switch (r.getStatus()) {
+                switch (r.status()) {
                     case SUCCESS:
                         status = ServerConnectRequest.Result.SUCCESS;
                         break;
@@ -247,8 +249,8 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
                         status = ServerConnectRequest.Result.FAIL;
                         break;
                 }
-                Throwable error = r.getReasonComponent().isPresent()
-                        ? new Exception(LegacyComponentSerializer.legacySection().serialize(r.getReasonComponent().get()))
+                Throwable error = r.failureReason() != null
+                        ? new Exception(LegacyComponentSerializer.legacySection().serialize(r.failureReason()))
                         : null;
                 request.getCallback().done(status, error);
             });
@@ -259,17 +261,17 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public Server getServer() {
-        return player.getCurrentServer().map(s -> new SnapServer(snap, s)).orElse(null);
+        return player.connectedServer() != null ? new SnapServer(snap, player.connectedServer()) : null;
     }
 
     @Override
     public int getPing() {
-        return player.getPing() > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) player.getPing();
+        return player.ping() > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) player.ping();
     }
 
     @Override
     public void sendData(String channel, byte[] data) {
-        player.sendPluginMessage(SnapUtils.createChannelIdentifier(channel), data);
+        player.sendPluginMessage(SnapUtils.createChannelId(channel), data);
     }
 
     @Override
@@ -306,22 +308,22 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public Locale getLocale() {
-        return player.getPlayerSettings().getLocale();
+        return player.clientSettings().getLocale();
     }
 
     @Override
     public byte getViewDistance() {
-        return player.getPlayerSettings().getViewDistance();
+        return player.clientSettings().getViewDistance();
     }
 
     @Override
     public ChatMode getChatMode() {
-        return SnapUtils.convertEnum(player.getPlayerSettings().getChatMode(), ChatMode.SHOWN);
+        return SnapUtils.convertEnum(player.clientSettings().getChatMode(), ChatMode.SHOWN);
     }
 
     @Override
     public boolean hasChatColors() {
-        return player.getPlayerSettings().hasChatColors();
+        return player.clientSettings().hasChatColors();
     }
 
     @Override
@@ -329,59 +331,59 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
         return new SkinConfiguration() {
             @Override
             public boolean hasCape() {
-                return player.getPlayerSettings().getSkinParts().hasCape();
+                return player.clientSettings().getSkinParts().hasCape();
             }
 
             @Override
             public boolean hasJacket() {
-                return player.getPlayerSettings().getSkinParts().hasJacket();
+                return player.clientSettings().getSkinParts().hasJacket();
             }
 
             @Override
             public boolean hasLeftSleeve() {
-                return player.getPlayerSettings().getSkinParts().hasLeftSleeve();
+                return player.clientSettings().getSkinParts().hasLeftSleeve();
             }
 
             @Override
             public boolean hasRightSleeve() {
-                return player.getPlayerSettings().getSkinParts().hasRightSleeve();
+                return player.clientSettings().getSkinParts().hasRightSleeve();
             }
 
             @Override
             public boolean hasLeftPants() {
-                return player.getPlayerSettings().getSkinParts().hasLeftPants();
+                return player.clientSettings().getSkinParts().hasLeftPants();
             }
 
             @Override
             public boolean hasRightPants() {
-                return player.getPlayerSettings().getSkinParts().hasRightPants();
+                return player.clientSettings().getSkinParts().hasRightPants();
             }
 
             @Override
             public boolean hasHat() {
-                return player.getPlayerSettings().getSkinParts().hasHat();
+                return player.clientSettings().getSkinParts().hasHat();
             }
         };
     }
 
     @Override
     public MainHand getMainHand() {
-        return SnapUtils.convertEnum(player.getPlayerSettings().getMainHand(), MainHand.RIGHT);
+        return SnapUtils.convertEnum(player.clientSettings().getMainHand(), MainHand.RIGHT);
     }
 
     @Override
     public void setTabHeader(BaseComponent header, BaseComponent footer) {
-        player.getTabList().setHeaderAndFooter(SnapUtils.convertComponent(header), SnapUtils.convertComponent(footer));
+        player.tabList().setHeaderAndFooter(SnapUtils.convertComponent(header), SnapUtils.convertComponent(footer));
     }
 
     @Override
     public void setTabHeader(BaseComponent[] header, BaseComponent[] footer) {
-        player.getTabList().setHeaderAndFooter(SnapUtils.convertComponent(header), SnapUtils.convertComponent(footer));
+        player.tabList().setHeaderAndFooter(SnapUtils.convertComponent(header), SnapUtils.convertComponent(footer));
     }
 
     @Override
     public void resetTabHeader() {
-        player.getTabList().clearHeaderAndFooter();
+        player.tabList().clearHeaderAndFooter();
     }
 
     @Override
@@ -391,8 +393,8 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public boolean isForgeUser() {
-        if (player.getModInfo().isPresent()) {
-            return player.getModInfo().get().getType().equalsIgnoreCase("FML");
+        if (player.modInfo() != null) {
+            return player.modInfo().getType().equalsIgnoreCase("FML");
         }
         return false;
     }
@@ -400,7 +402,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
     @Override
     public Map<String, String> getModList() {
         if (isForgeUser()) {
-            return player.getModInfo().get().getMods().stream()
+            return player.modInfo().getMods().stream()
                     .collect(Collectors.toMap(ModInfo.Mod::getId, ModInfo.Mod::getVersion));
         }
         return Collections.emptyMap();
@@ -414,7 +416,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
     @Override
     public String getName() {
-        return player.getUsername();
+        return player.username();
     }
 
     @Override

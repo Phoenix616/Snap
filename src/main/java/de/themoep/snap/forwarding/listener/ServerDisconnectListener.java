@@ -34,8 +34,8 @@ public class ServerDisconnectListener extends ForwardingListener {
     @Subscribe(order = PostOrder.LAST)
     public void on(KickedFromServerEvent event) {
         snap.getBungeeAdapter().getPluginManager().callEvent(new ServerDisconnectEvent(
-                snap.getPlayer(event.getPlayer()),
-                snap.getServerInfo(event.getServer())
+                snap.getPlayer(event.player()),
+                snap.getServerInfo(event.server())
         ));
     }
 }

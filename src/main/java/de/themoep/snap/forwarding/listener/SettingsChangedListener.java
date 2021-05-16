@@ -19,7 +19,7 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.player.PlayerSettingsChangedEvent;
+import com.velocitypowered.api.event.player.PlayerClientSettingsChangedEvent;
 import de.themoep.snap.Snap;
 import net.md_5.bungee.api.event.SettingsChangedEvent;
 
@@ -30,7 +30,7 @@ public class SettingsChangedListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(PlayerSettingsChangedEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new SettingsChangedEvent(snap.getPlayer(event.getPlayer())));
+    public void on(PlayerClientSettingsChangedEvent event) {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new SettingsChangedEvent(snap.getPlayer(event.player())));
     }
 }

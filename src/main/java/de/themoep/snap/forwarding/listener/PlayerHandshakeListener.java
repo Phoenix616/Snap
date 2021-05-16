@@ -35,12 +35,12 @@ public class PlayerHandshakeListener extends ForwardingListener {
     @Subscribe
     public void on(ConnectionHandshakeEvent event) {
         snap.getBungeeAdapter().getPluginManager().callEvent(new PlayerHandshakeEvent(
-                convertConnection(event.getConnection()),
+                convertConnection(event.connection()),
                 new Handshake(
-                        event.getConnection().getProtocolVersion().getProtocol(),
-                        event.getConnection().getVirtualHost().map(InetSocketAddress::getHostString).orElse(null),
-                        event.getConnection().getVirtualHost().map(InetSocketAddress::getPort).orElse(0),
-                        event.getConnection().getProtocolVersion().getProtocol()
+                        event.connection().protocolVersion().protocol(),
+                        event.currentHostname(),
+                        event.connection().connectedHostname() != null ? event.connection().connectedHostname().getPort() : null,
+                        event.connection().protocolVersion().protocol()
                 ) {
                     public void setProtocolVersion(int protocolVersion) {
                         snap.unsupported();

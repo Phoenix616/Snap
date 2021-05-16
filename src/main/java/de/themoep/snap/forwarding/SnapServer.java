@@ -18,8 +18,8 @@ package de.themoep.snap.forwarding;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.ServerConnection;
+import com.velocitypowered.api.proxy.connection.Player;
+import com.velocitypowered.api.proxy.connection.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
@@ -38,7 +38,7 @@ public class SnapServer implements Server {
     private boolean connected = true;
 
     public SnapServer(Snap snap, ServerConnection serverConnection) {
-        this(snap, serverConnection.getPlayer(), serverConnection.getServer());
+        this(snap, serverConnection.player(), serverConnection.target());
     }
 
     public SnapServer(Snap snap, Player player, RegisteredServer server) {
@@ -54,32 +54,36 @@ public class SnapServer implements Server {
 
     @Override
     public void sendData(String channel, byte[] data) {
-        server.sendPluginMessage(SnapUtils.createChannelIdentifier(channel), data);
+        server.sendPluginMessage(SnapUtils.createChannelId(channel), data);
     }
 
     @Override
     public InetSocketAddress getAddress() {
-        return server.getServerInfo().getAddress();
+        return getSocketAddress() instanceof InetSocketAddress ? (InetSocketAddress) getSocketAddress() : null;
     }
 
     @Override
     public SocketAddress getSocketAddress() {
-        return server.getServerInfo().getAddress();
+        return server.serverInfo().address();
     }
 
     @Override
     public void disconnect(String reason) {
         // TODO: This tries to mirror what Bungee does in that case but might not be exact?
-        if (server.getServerInfo().getName().equals(snap.getProxy().getConfiguration().getAttemptConnectionOrder().get(0))) {
-            if (snap.getProxy().getConfiguration().getAttemptConnectionOrder().size() == 1) {
+        if (server.serverInfo().name().equals(snap.getProxy().configuration().getAttemptConnectionOrder().get(0))) {
+            if (snap.getProxy().configuration().getAttemptConnectionOrder().size() == 1) {
                 player.disconnect(LegacyComponentSerializer.legacySection().deserialize(reason));
             } else {
-                snap.getProxy().getServer(snap.getProxy().getConfiguration().getAttemptConnectionOrder().get(1))
-                        .ifPresent(s -> player.createConnectionRequest(s).fireAndForget());
+                RegisteredServer s = snap.getProxy().server(snap.getProxy().configuration().getAttemptConnectionOrder().get(1));
+                if (s != null) {
+                    player.createConnectionRequest(s).fireAndForget();
+                }
             }
         } else {
-            snap.getProxy().getServer(snap.getProxy().getConfiguration().getAttemptConnectionOrder().get(0))
-                    .ifPresent(s -> player.createConnectionRequest(s).fireAndForget());
+            RegisteredServer s = snap.getProxy().server(snap.getProxy().configuration().getAttemptConnectionOrder().get(0));
+            if (s != null) {
+                player.createConnectionRequest(s).fireAndForget();
+            }
         }
         connected = false;
     }
@@ -87,16 +91,20 @@ public class SnapServer implements Server {
     @Override
     public void disconnect(BaseComponent... reason) {
         // TODO: This tries to mirror what Bungee does in that case but might not be exact?
-        if (server.getServerInfo().getName().equals(snap.getProxy().getConfiguration().getAttemptConnectionOrder().get(0))) {
-            if (snap.getProxy().getConfiguration().getAttemptConnectionOrder().size() == 1) {
+        if (server.serverInfo().name().equals(snap.getProxy().configuration().getAttemptConnectionOrder().get(0))) {
+            if (snap.getProxy().configuration().getAttemptConnectionOrder().size() == 1) {
                 player.disconnect(SnapUtils.convertComponent(reason));
             } else {
-                snap.getProxy().getServer(snap.getProxy().getConfiguration().getAttemptConnectionOrder().get(1))
-                        .ifPresent(s -> player.createConnectionRequest(s).fireAndForget());
+                RegisteredServer s = snap.getProxy().server(snap.getProxy().configuration().getAttemptConnectionOrder().get(1));
+                if (s != null) {
+                    player.createConnectionRequest(s).fireAndForget();
+                }
             }
         } else {
-            snap.getProxy().getServer(snap.getProxy().getConfiguration().getAttemptConnectionOrder().get(0))
-                    .ifPresent(s -> player.createConnectionRequest(s).fireAndForget());
+            RegisteredServer s = snap.getProxy().server(snap.getProxy().configuration().getAttemptConnectionOrder().get(0));
+            if (s != null) {
+                player.createConnectionRequest(s).fireAndForget();
+            }
         }
         connected = false;
     }

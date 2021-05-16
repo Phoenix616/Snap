@@ -19,11 +19,12 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.ProxyQueryEvent;
 import com.velocitypowered.api.proxy.server.QueryResponse;
 import de.themoep.snap.Snap;
 import io.github.waterfallmc.waterfall.QueryResult;
-import io.github.waterfallmc.waterfall.event.ProxyQueryEvent;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
 public class ProxyQueryListener extends ForwardingListener {
@@ -33,20 +34,23 @@ public class ProxyQueryListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.query.ProxyQueryEvent event) {
-        QueryResult r = snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyQueryEvent(
-                snap.getBungeeAdapter().getProxy().getListener(),
+    public void on(ProxyQueryEvent event) {
+        QueryResult r = snap.getBungeeAdapter().getPluginManager().callEvent(new io.github.waterfallmc.waterfall.event.ProxyQueryEvent(
+                snap.getBungeeAdapter().getProxy().getListener(new InetSocketAddress(
+                        event.response().proxyHost(),
+                        event.response().proxyPort()
+                )),
                 new QueryResult(
-                        event.getResponse().getHostname(),
+                        event.response().hostname(),
                         "SMP",
-                        event.getResponse().getMap(),
-                        event.getResponse().getCurrentPlayers(),
-                        event.getResponse().getMaxPlayers(),
-                        event.getResponse().getProxyPort(),
-                        event.getResponse().getProxyHost(),
+                        event.response().mapName(),
+                        event.response().onlinePlayers(),
+                        event.response().maxPlayers(),
+                        event.response().proxyPort(),
+                        event.response().proxyHost(),
                         "MINECRAFT",
-                        new ArrayList<>(event.getResponse().getPlayers()),
-                        event.getResponse().getGameVersion()
+                        new ArrayList<>(event.response().players()),
+                        event.response().gameVersion()
                 )
         )).getResult();
 
@@ -54,7 +58,7 @@ public class ProxyQueryListener extends ForwardingListener {
                 .hostname(r.getMotd())
                 //.gameType(r.getGameType()) // TODO: Not supported
                 .map(r.getWorldName())
-                .currentPlayers(r.getOnlinePlayers())
+                .onlinePlayers(r.getOnlinePlayers())
                 .maxPlayers(r.getMaxPlayers())
                 .proxyPort(r.getPort())
                 .proxyHost(r.getAddress())

@@ -19,9 +19,9 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import de.themoep.snap.Snap;
 import de.themoep.snap.forwarding.SnapServer;
-import net.md_5.bungee.api.event.ServerConnectedEvent;
 
 public class ServerConnectedListener extends ForwardingListener {
 
@@ -30,10 +30,10 @@ public class ServerConnectedListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.player.ServerConnectedEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ServerConnectedEvent(
-                snap.getPlayer(event.getPlayer()),
-                new SnapServer(snap, event.getPlayer(), event.getServer()))
+    public void on(ServerConnectedEvent event) {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.ServerConnectedEvent(
+                snap.getPlayer(event.player()),
+                new SnapServer(snap, event.player(), event.target()))
         );
     }
 }

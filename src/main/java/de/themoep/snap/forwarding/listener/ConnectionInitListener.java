@@ -20,7 +20,7 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.PreLoginEvent;
+import com.velocitypowered.api.event.player.PreLoginEvent;
 import de.themoep.snap.Snap;
 import io.github.waterfallmc.waterfall.event.ConnectionInitEvent;
 import net.kyori.adventure.text.Component;
@@ -34,16 +34,16 @@ public class ConnectionInitListener extends ForwardingListener {
 
     @Subscribe(order = PostOrder.EARLY)
     public void on(PreLoginEvent event) {
-        if (!event.getResult().isAllowed()) {
+        if (!event.result().isAllowed()) {
             return;
         }
 
         snap.getBungeeAdapter().getPluginManager().callEvent(new ConnectionInitEvent(
-                event.getConnection().getRemoteAddress(),
-                snap.getBungeeAdapter().getProxy().getListener(),
+                event.connection().remoteAddress(),
+                snap.getBungeeAdapter().getProxy().getListener(event.connection().connectedHostname()),
                 (e, t) -> {
                     if (e.isCancelled()) {
-                        event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("ConnectionInitEvent Cancelled")));
+                        event.setResult(PreLoginEvent.ComponentResult.denied(Component.text("ConnectionInitEvent Cancelled")));
                     }
                 }
         ));

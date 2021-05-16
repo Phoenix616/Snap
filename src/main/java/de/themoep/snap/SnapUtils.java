@@ -18,13 +18,11 @@ package de.themoep.snap;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
-import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
-import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import com.velocitypowered.api.proxy.messages.PluginChannelId;
 import com.velocitypowered.api.proxy.server.ServerPing.Players;
-import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer;
 import com.velocitypowered.api.proxy.server.ServerPing.Version;
 import com.velocitypowered.api.util.ModInfo;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.Favicon;
@@ -39,12 +37,12 @@ import java.util.stream.Collectors;
 
 public class SnapUtils {
 
-    public static ChannelIdentifier createChannelIdentifier(String channel) {
+    public static PluginChannelId createChannelId(String channel) {
         if (channel.contains(":")) {
             String[] split = channel.split(":", 2);
-            return MinecraftChannelIdentifier.create(split[0], split[1]);
+            return PluginChannelId.wrap(Key.key(split[0], split[1]));
         }
-        return new LegacyChannelIdentifier(channel);
+        return PluginChannelId.wrap(Key.key("BungeeCord", channel));
     }
 
     public static <T extends Enum, S extends Enum> T convertEnum(S source, T def) {
@@ -65,22 +63,22 @@ public class SnapUtils {
 
     public static ServerPing convertPing(com.velocitypowered.api.proxy.server.ServerPing vPing) {
         BaseComponent motd = new net.md_5.bungee.api.chat.TextComponent();
-        motd.setExtra(Arrays.asList(convertComponent(vPing.getDescriptionComponent())));
+        motd.setExtra(Arrays.asList(convertComponent(vPing.description())));
         ServerPing bPing = new ServerPing(
-                new ServerPing.Protocol(vPing.getVersion().getName(), vPing.getVersion().getProtocol()),
-                vPing.getPlayers().map(p -> new ServerPing.Players(
-                        p.getMax(),
-                        p.getOnline(),
-                        p.getSample().stream()
-                                .map(s -> new ServerPing.PlayerInfo(s.getName(), s.getId()))
-                                .toArray(ServerPing.PlayerInfo[]::new)
-                )).orElse(null),
+                new ServerPing.Protocol(vPing.version().name(), vPing.version().protocol()),
+                        vPing.players() != null ? new ServerPing.Players(
+                                vPing.players().maximum(),
+                                vPing.players().online(),
+                                vPing.players().sample().stream()
+                                        .map(s -> new ServerPing.PlayerInfo(s.name(), s.id()))
+                                        .toArray(ServerPing.PlayerInfo[]::new)
+                        ) : null,
                 motd,
-                vPing.getFavicon().map(f -> Favicon.create(f.getBase64Url())).orElse(null)
+                vPing.favicon() != null ? Favicon.create(vPing.favicon().getBase64Url()) : null
         );
-        if (vPing.getModinfo().isPresent()) {
-            bPing.getModinfo().setType(vPing.getModinfo().get().getType());
-            bPing.getModinfo().setModList(vPing.getModinfo().get().getMods().stream()
+        if (vPing.modInfo() != null) {
+            bPing.getModinfo().setType(vPing.modInfo().getType());
+            bPing.getModinfo().setModList(vPing.modInfo().getMods().stream()
                     .map(m -> new ServerPing.ModItem(m.getId(), m.getVersion()))
                     .collect(Collectors.toList()));
         }

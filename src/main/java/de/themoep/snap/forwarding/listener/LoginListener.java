@@ -31,17 +31,19 @@ public class LoginListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.connection.LoginEvent event) {
-        LoginEvent e = new LoginEvent(snap.getPlayer(event.getPlayer()).getPendingConnection(), (le, t) -> {
-            if (le.isCancelled() && event.getResult().isAllowed()) {
+    public void on(com.velocitypowered.api.event.player.LoginEvent event) {
+        LoginEvent e = new LoginEvent(snap.getPlayer(event.player()).getPendingConnection(), (le, t) -> {
+            if (le.isCancelled() && event.result().isAllowed()) {
                 event.setResult(ResultedEvent.ComponentResult.denied(SnapUtils.convertComponent(le.getCancelReasonComponents())));
-            } else if (!le.isCancelled() && !event.getResult().isAllowed()) {
+            } else if (!le.isCancelled() && !event.result().isAllowed()) {
                 event.setResult(ResultedEvent.ComponentResult.allowed());
             }
         });
-        if (!event.getResult().isAllowed()) {
+        if (!event.result().isAllowed()) {
             e.setCancelled(true);
-            event.getResult().getReasonComponent().ifPresent(c -> e.setCancelReason(SnapUtils.convertComponent(c)));
+            if (event.result().reason() != null) {
+                e.setCancelReason(SnapUtils.convertComponent(event.result().reason()));
+            }
         }
         snap.getBungeeAdapter().getPluginManager().callEvent(e);
     }

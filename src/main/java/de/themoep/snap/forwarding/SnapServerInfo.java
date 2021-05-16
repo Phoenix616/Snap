@@ -18,7 +18,7 @@ package de.themoep.snap.forwarding;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.connection.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
@@ -49,23 +49,23 @@ public class SnapServerInfo implements net.md_5.bungee.api.config.ServerInfo {
 
     @Override
     public String getName() {
-        return server.getServerInfo().getName();
+        return server.serverInfo().name();
     }
 
     @Override
     public InetSocketAddress getAddress() {
-        return server.getServerInfo().getAddress();
+        return getSocketAddress() instanceof InetSocketAddress ? (InetSocketAddress) getSocketAddress() : null;
     }
 
     @Override
     public SocketAddress getSocketAddress() {
-        return getAddress();
+        return server.serverInfo().address();
     }
 
     @Override
     public Collection<ProxiedPlayer> getPlayers() {
         Set<ProxiedPlayer> players = new LinkedHashSet<>();
-        for (Player player : server.getPlayersConnected()) {
+        for (Player player : server.connectedPlayers()) {
             players.add(snap.getPlayer(player));
         }
         return players;
@@ -96,12 +96,12 @@ public class SnapServerInfo implements net.md_5.bungee.api.config.ServerInfo {
 
     @Override
     public void sendData(String channel, byte[] data) {
-        server.sendPluginMessage(SnapUtils.createChannelIdentifier(channel), data);
+        server.sendPluginMessage(SnapUtils.createChannelId(channel), data);
     }
 
     @Override
     public boolean sendData(String channel, byte[] data, boolean queue) {
-        return server.sendPluginMessage(SnapUtils.createChannelIdentifier(channel), data);
+        return server.sendPluginMessage(SnapUtils.createChannelId(channel), data);
     }
 
     @Override

@@ -20,10 +20,10 @@ package de.themoep.snap;
 
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.DisconnectEvent;
-import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.lifecycle.ProxyShutdownEvent;
+import com.velocitypowered.api.event.player.DisconnectEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
-import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.event.player.LoginEvent;
 import com.velocitypowered.api.util.GameProfile;
 
 import java.util.UUID;
@@ -40,23 +40,23 @@ public class SnapListener {
 
     @Subscribe(order = PostOrder.FIRST)
     public void onPlayerConnect(LoginEvent event) {
-        if (event.getResult().isAllowed()) {
-            snap.getPlayer(event.getPlayer());
+        if (event.result().isAllowed()) {
+            snap.getPlayer(event.player());
         }
     }
 
     @Subscribe(order = PostOrder.LAST)
     public void onPlayerConnectLast(LoginEvent event) {
-        if (!event.getResult().isAllowed()) {
-            snap.getPlayers().remove(event.getPlayer().getUniqueId());
-            snap.getPlayerNames().remove(event.getPlayer().getUsername());
+        if (!event.result().isAllowed()) {
+            snap.getPlayers().remove(event.player().id());
+            snap.getPlayerNames().remove(event.player().username());
         }
     }
 
     @Subscribe(order = PostOrder.LAST)
     public void onPlayerQuit(DisconnectEvent event) {
-        snap.getPlayers().remove(event.getPlayer().getUniqueId());
-        snap.getPlayerNames().remove(event.getPlayer().getUsername());
+        snap.getPlayers().remove(event.player().id());
+        snap.getPlayerNames().remove(event.player().username());
     }
 
     @Subscribe
@@ -66,9 +66,9 @@ public class SnapListener {
 
     @Subscribe
     public void onGameprofileRequest(GameProfileRequestEvent event) {
-        UUID playerId = snap.pullCachedUuidForUsername(event.getUsername());
-        if (playerId != null && !event.isOnlineMode() && !event.getGameProfile().getId().equals(playerId)) {
-            event.setGameProfile(new GameProfile(playerId, event.getGameProfile().getName(), event.getGameProfile().getProperties()));
+        UUID playerId = snap.pullCachedUuidForUsername(event.username());
+        if (playerId != null && !event.isOnlineMode() && !event.gameProfile().uuid().equals(playerId)) {
+            event.setGameProfile(new GameProfile(playerId, event.gameProfile().name(), event.gameProfile().properties()));
         }
     }
 }

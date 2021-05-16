@@ -18,8 +18,8 @@ package de.themoep.snap.forwarding;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
+import com.velocitypowered.api.network.NetworkEndpoint;
+import com.velocitypowered.api.proxy.connection.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
@@ -42,7 +42,8 @@ import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.api.scheduler.TaskScheduler;
 
 import java.io.File;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -63,40 +65,42 @@ public class SnapProxyServer extends ProxyServer {
     private final Snap snap;
 
     private String statsId;
-    private Field fIdentifierMap;
+    private Method mGetChannelIds;
     private Set<String> channels = new HashSet<>();
-    private final ListenerInfo listener;
-    private Collection<ListenerInfo> listeners;
+    private List<ListenerInfo> listeners;
     private Logger logger = Logger.getLogger("Snap");
     private TaskScheduler scheduler;
 
     public SnapProxyServer(Snap snap) {
         this.snap = snap;
-        com.velocitypowered.api.proxy.config.ProxyConfig config = snap.getProxy().getConfiguration();
+        com.velocitypowered.api.proxy.config.ProxyConfig config = snap.getProxy().configuration();
 
         statsId = snap.getConfig().getString("stats-id");
         if (statsId == null) {
             statsId = UUID.randomUUID().toString();
         }
 
-        listener = new ListenerInfo(
-                snap.getProxy().getBoundAddress(),
-                LegacyComponentSerializer.legacySection().serialize(config.getMotd()),
-                config.getShowMaxPlayers(),
-                60, // Default?
-                config.getAttemptConnectionOrder(),
-                true,
-                config.getForcedHosts().entrySet().stream()
-                        .filter(e -> !e.getValue().isEmpty())
-                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0))),
-                "GLOBAL_PING",
-                true,
-                false, // TODO: Read ping passthrough from Velocity config?
-                config.getQueryPort(),
-                config.isQueryEnabled(),
-                false
-        );
-        listeners = Collections.singleton(listener);
+        listeners = new ArrayList<>();
+
+        for (NetworkEndpoint endpoint : snap.getProxy().endpoints()) {
+            listeners.add(new ListenerInfo(
+                    endpoint.address(),
+                    LegacyComponentSerializer.legacySection().serialize(config.getMotd()),
+                    config.getShowMaxPlayers(),
+                    60, // Default?
+                    config.getAttemptConnectionOrder(),
+                    true,
+                    config.getForcedHosts().entrySet().stream()
+                            .filter(e -> !e.getValue().isEmpty())
+                            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0))),
+                    "GLOBAL_PING",
+                    true,
+                    false, // TODO: Read ping passthrough from Velocity config?
+                    config.getQueryPort(),
+                    config.isQueryEnabled(),
+                    false
+            ));
+        }
 
         scheduler = new TaskScheduler() {
 
@@ -126,21 +130,21 @@ public class SnapProxyServer extends ProxyServer {
 
             @Override
             public ScheduledTask runAsync(Plugin plugin, Runnable runnable) {
-                ScheduledTask bTask = SnapUtils.convertTask(plugin, runnable, snap.getProxy().getScheduler().buildTask(snap, runnable).schedule());
+                ScheduledTask bTask = SnapUtils.convertTask(plugin, runnable, snap.getProxy().scheduler().buildTask(snap, runnable).schedule());
                 scheduledTasks.put(bTask.hashCode(), bTask);
                 return bTask;
             }
 
             @Override
             public ScheduledTask schedule(Plugin plugin, Runnable runnable, long delay, TimeUnit timeUnit) {
-                ScheduledTask bTask = SnapUtils.convertTask(plugin, runnable, snap.getProxy().getScheduler().buildTask(snap, runnable).delay(delay, timeUnit).schedule());
+                ScheduledTask bTask = SnapUtils.convertTask(plugin, runnable, snap.getProxy().scheduler().buildTask(snap, runnable).delay(delay, timeUnit).schedule());
                 scheduledTasks.put(bTask.hashCode(), bTask);
                 return bTask;
             }
 
             @Override
             public ScheduledTask schedule(Plugin plugin, Runnable runnable, long delay, long period, TimeUnit timeUnit) {
-                ScheduledTask bTask = SnapUtils.convertTask(plugin, runnable, snap.getProxy().getScheduler().buildTask(snap, runnable).delay(delay, timeUnit).repeat(period, timeUnit).schedule());
+                ScheduledTask bTask = SnapUtils.convertTask(plugin, runnable, snap.getProxy().scheduler().buildTask(snap, runnable).delay(delay, timeUnit).repeat(period, timeUnit).schedule());
                 scheduledTasks.put(bTask.hashCode(), bTask);
                 return bTask;
             }
@@ -152,27 +156,32 @@ public class SnapProxyServer extends ProxyServer {
         };
 
         try {
-            fIdentifierMap = snap.getProxy().getChannelRegistrar().getClass().getDeclaredField("identifierMap");
-            fIdentifierMap.setAccessible(true);
-            fIdentifierMap.get(snap.getProxy().getChannelRegistrar());
-        } catch (NoSuchFieldException | SecurityException | IllegalAccessException e) {
+            mGetChannelIds = snap.getProxy().channelRegistrar().getClass().getMethod("getModernChannelIds");
+            mGetChannelIds.setAccessible(true);
+            mGetChannelIds.invoke(snap.getProxy().channelRegistrar());
+        } catch (SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             e.printStackTrace();
-            fIdentifierMap = null;
+            mGetChannelIds = null;
         }
     }
 
-    public ListenerInfo getListener() {
-        return listener;
+    public ListenerInfo getListener(InetSocketAddress hostname) {
+        for (ListenerInfo listener : listeners) {
+            if (listener.getSocketAddress().equals(hostname)) {
+                return listener;
+            }
+        }
+        return listeners.get(0);
     }
 
     @Override
     public String getName() {
-        return snap.getProxy().getVersion().getName();
+        return snap.getProxy().version().name();
     }
 
     @Override
     public String getVersion() {
-        return snap.getProxy().getVersion().getVersion();
+        return snap.getProxy().version().version();
     }
 
     @Override
@@ -203,7 +212,7 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public Map<String, ServerInfo> getServers() {
-        return snap.getProxy().getAllServers().stream().map(snap::getServerInfo).collect(Collectors.toMap(SnapServerInfo::getName, s -> s));
+        return snap.getProxy().registeredServers().stream().map(snap::getServerInfo).collect(Collectors.toMap(SnapServerInfo::getName, s -> s));
     }
 
     @Override
@@ -213,7 +222,8 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public ServerInfo getServerInfo(String name) {
-        return snap.getProxy().getServer(name).map(snap::getServerInfo).orElse(null);
+        RegisteredServer server = snap.getProxy().server(name);
+        return server != null ? snap.getServerInfo(server) : null;
     }
 
     @Override
@@ -257,24 +267,23 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public void registerChannel(String channel) {
-        snap.getProxy().getChannelRegistrar().register(SnapUtils.createChannelIdentifier(channel));
+        snap.getProxy().channelRegistrar().register(SnapUtils.createChannelId(channel));
         channels.add(channel);
     }
 
     @Override
     public void unregisterChannel(String channel) {
-        snap.getProxy().getChannelRegistrar().unregister(SnapUtils.createChannelIdentifier(channel));
+        snap.getProxy().channelRegistrar().unregister(SnapUtils.createChannelId(channel));
         channels.remove(channel);
     }
 
     @Override
     public Collection<String> getChannels() {
         // TODO: Non-reflection way to access registered channels
-        if (fIdentifierMap != null) {
+        if (mGetChannelIds != null) {
             try {
-                Map<String, ChannelIdentifier> identifierMap = (Map<String, ChannelIdentifier>) fIdentifierMap.get(snap.getProxy().getChannelRegistrar());
-                return identifierMap.keySet();
-            } catch (IllegalAccessException | ClassCastException e) {
+                return (Collection<String>) mGetChannelIds.invoke(snap.getProxy().channelRegistrar());
+            } catch (IllegalAccessException | ClassCastException | InvocationTargetException e) {
                 e.printStackTrace();
             }
         }
@@ -283,7 +292,7 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public String getGameVersion() {
-        return snap.getProxy().getVersion().getVersion();
+        return snap.getProxy().version().version();
     }
 
     @Override
@@ -307,7 +316,7 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public CommandSender getConsole() {
-        return new SnapCommandSender(snap, snap.getProxy().getConsoleCommandSource());
+        return new SnapCommandSender(snap, snap.getProxy().consoleCommandSource());
     }
 
     @Override
@@ -322,7 +331,7 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public int getOnlineCount() {
-        return snap.getProxy().getPlayerCount();
+        return snap.getProxy().countConnectedPlayers();
     }
 
     @Override
@@ -341,7 +350,7 @@ public class SnapProxyServer extends ProxyServer {
     }
 
     private void broadcast(Component component) {
-        for (Player player : snap.getProxy().getAllPlayers()) {
+        for (Player player : snap.getProxy().connectedPlayers()) {
             player.sendMessage(component);
         }
     }
@@ -353,7 +362,7 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public ProxyConfig getConfig() {
-        com.velocitypowered.api.proxy.config.ProxyConfig config = snap.getProxy().getConfiguration();
+        com.velocitypowered.api.proxy.config.ProxyConfig config = snap.getProxy().configuration();
         return new ProxyConfig() {
             @Override
             public int getTimeout() {
@@ -387,19 +396,19 @@ public class SnapProxyServer extends ProxyServer {
 
             @Override
             public ServerInfo addServer(ServerInfo server) {
-                Optional<RegisteredServer> previous = snap.getProxy().getServer(server.getName());
+                RegisteredServer previous = snap.getProxy().server(server.getName());
 
-                if (previous.isPresent()) {
-                    if (previous.get().getServerInfo().getName().equals(server.getName())
-                            && previous.get().getServerInfo().getAddress().equals(server.getAddress())) {
+                if (previous == null) {
+                    if (previous.serverInfo().name().equals(server.getName())
+                            && previous.serverInfo().address().equals(server.getAddress())) {
                         // Don't register the same server twice
                         return server;
                     }
-                    snap.getProxy().unregisterServer(previous.get().getServerInfo());
-                    snap.getServers().remove(previous.get().getServerInfo().getName());
+                    snap.getProxy().unregisterServer(previous.serverInfo());
+                    snap.getServers().remove(previous.serverInfo().name());
                 }
 
-                ServerInfo previousInfo = snap.getServerInfo(previous.orElse(null));
+                ServerInfo previousInfo = snap.getServerInfo(previous);
 
                 RegisteredServer rs = snap.getProxy().registerServer(
                         new com.velocitypowered.api.proxy.server.ServerInfo(server.getName(), server.getAddress()));
@@ -424,7 +433,7 @@ public class SnapProxyServer extends ProxyServer {
             @Override
             public ServerInfo removeServer(ServerInfo server) {
                 if (server instanceof SnapServerInfo) {
-                    snap.getProxy().unregisterServer(((SnapServerInfo) server).getServer().getServerInfo());
+                    snap.getProxy().unregisterServer(((SnapServerInfo) server).getServer().serverInfo());
                     getServers().remove(server.getName());
                     return server;
                 }
@@ -499,12 +508,12 @@ public class SnapProxyServer extends ProxyServer {
 
             @Override
             public String getFavicon() {
-                return config.getFavicon().map(f -> f.getBase64Url()).orElse("");
+                return config.getFavicon() != null ? config.getFavicon().getBase64Url() : "";
             }
 
             @Override
             public Favicon getFaviconObject() {
-                return config.getFavicon().map(f -> Favicon.create(f.getBase64Url())).orElse(null);
+                return config.getFavicon() != null ? Favicon.create(config.getFavicon().getBase64Url()) : null;
             }
 
             @Override
@@ -517,7 +526,7 @@ public class SnapProxyServer extends ProxyServer {
             @Override
             public String getGameVersion() {
                 // TODO: Allow configuring this?
-                return snap.getProxy().getVersion().getVersion();
+                return snap.getProxy().version().version();
             }
 
             @Override

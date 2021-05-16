@@ -19,7 +19,7 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.player.DisconnectEvent;
 import de.themoep.snap.Snap;
 
 public class PlayerDisconnectListener extends ForwardingListener {
@@ -30,7 +30,7 @@ public class PlayerDisconnectListener extends ForwardingListener {
 
     @Subscribe
     public void on(DisconnectEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.PlayerDisconnectEvent(snap.getPlayer(event.getPlayer())));
+        snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.PlayerDisconnectEvent(snap.getPlayer(event.player())));
     }
 
 }

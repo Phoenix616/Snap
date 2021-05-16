@@ -1,7 +1,7 @@
 # Snap!
 
 This is the Seriously Necessary Adapter Plugin to enable plugins written against the
- BungeeCord or Waterfall API to load and (kinda) run on [Velocity](https://velocitypowered.com/). 👀
+ BungeeCord or Waterfall API to load and (kinda) run on [Velocity 2](https://velocitypowered.com/). 👀
 
 ## How?
 
@@ -19,12 +19,12 @@ Originally I wanted to document the Velocity equivalents to Bungee events, metho
  
 Seeing as the proxies don't have too much logic that seems to have worked although
  it is definitely a lot more inefficient than just running native Velocity plugins 
- due lots of classes being in need of getting translated on the fly.
+ due to lots of classes being in need of getting translated on the fly.
  
 Technically this could be made in a way that is a lot more efficient by directly 
  modifying the Velocity or BungeeCord source code to extend the respective other
  classes but in practice that massively increases the work required to get this
- plugin running, and that's all I wanted to do for now.
+ plugin running, and that's all I wanted to do. (for now)
  
 ## What works?
 
@@ -51,7 +51,7 @@ If you are sure that the plugin will work fine otherwise then you can have it re
   suited for a plugin. The related methods will return `null` or set nothing. Instead
   of erroring.
 - **Scoreboards.** Velocity doesn't have API for them and I'm not going to create a 
-  packet based one. Maybe there will be a way to integrate in some plugin or Velocity 
+  packet based one. Maybe there will be a way to hook into some plugin or Velocity 
   adds support in the future.
 - Some **ProxyConfig** settings don't exist on Velocity or aren't exposed in the API so 
   they return some sensible defaults which should reflect the proxy's state.

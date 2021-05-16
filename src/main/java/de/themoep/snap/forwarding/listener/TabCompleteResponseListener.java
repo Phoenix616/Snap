@@ -33,12 +33,14 @@ public class TabCompleteResponseListener extends ForwardingListener {
     @Subscribe
     public void on(TabCompleteEvent event) {
         TabCompleteResponseEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new TabCompleteResponseEvent(
-                event.getPlayer().getCurrentServer().map(s -> new SnapServer(snap, s)).orElse(null),
-                snap.getPlayer(event.getPlayer()),
-                event.getSuggestions()
+                event.player().connectedServer() != null ? new SnapServer(snap, event.player().connectedServer()) : null,
+                snap.getPlayer(event.player()),
+                event.suggestions()
         ));
+        event.suggestions().clear();
+        event.suggestions().addAll(e.getSuggestions());
         if (e.isCancelled()) {
-            event.getSuggestions().clear();
+            event.suggestions().clear();
         }
     }
 }

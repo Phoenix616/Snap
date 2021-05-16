@@ -4,10 +4,10 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.lifecycle.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
-import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.connection.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.themoep.snap.forwarding.SnapPlayer;
 import de.themoep.snap.forwarding.SnapServerInfo;
@@ -61,7 +61,7 @@ public class Snap {
             bungeeAdapter = new SnapBungeeAdapter(this);
             bungeeAdapter.registerEvents();
             bungeeAdapter.loadPlugins();
-            getProxy().getEventManager().register(this, new SnapListener(this));
+            getProxy().eventManager().register(this, new SnapListener(this));
         } else {
             getLogger().error("Unable to load config! Plugin will not enable.");
         }
@@ -110,7 +110,7 @@ public class Snap {
     }
 
     public SnapPlayer getPlayer(Player player) {
-        SnapPlayer p = players.computeIfAbsent(player.getUniqueId(), u -> new SnapPlayer(this, player));
+        SnapPlayer p = players.computeIfAbsent(player.id(), u -> new SnapPlayer(this, player));
         playerNames.putIfAbsent(p.getName(), p);
         return p;
     }
@@ -119,7 +119,7 @@ public class Snap {
         if (server == null) {
             return null;
         }
-        return servers.computeIfAbsent(server.getServerInfo().getName(), u -> new SnapServerInfo(this, server));
+        return servers.computeIfAbsent(server.serverInfo().name(), u -> new SnapServerInfo(this, server));
     }
 
     public Map<String, SnapServerInfo> getServers() {

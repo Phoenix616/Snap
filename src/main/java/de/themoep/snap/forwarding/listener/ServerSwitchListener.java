@@ -31,6 +31,6 @@ public class ServerSwitchListener extends ForwardingListener {
 
     @Subscribe
     public void on(ServerPostConnectEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new ServerSwitchEvent(snap.getPlayer(event.getPlayer()), snap.getServerInfo(event.getPreviousServer())));
+        snap.getBungeeAdapter().getPluginManager().callEvent(new ServerSwitchEvent(snap.getPlayer(event.player()), snap.getServerInfo(event.previousServer())));
     }
 }
