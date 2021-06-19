@@ -20,14 +20,10 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.player.KickedFromServerEvent;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
 import de.themoep.snap.forwarding.SnapServerInfo;
-import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.ServerKickEvent;
-
-import java.util.Optional;
 
 public class ServerKickListener extends ForwardingListener {
 
@@ -40,8 +36,8 @@ public class ServerKickListener extends ForwardingListener {
         ServerKickEvent e = new ServerKickEvent(
                 snap.getPlayer(event.getPlayer()),
                 snap.getServerInfo(event.getServer()),
-                event.getServerKickReason().map(SnapUtils::convertComponent).orElse(null),
-                event.kickedDuringServerConnect() ? getNextServer(event.getServer()) : null,
+                SnapUtils.convertComponent(event.getServerKickReason().orElse(null)),
+                event.getResult() instanceof KickedFromServerEvent.RedirectPlayer ? snap.getServerInfo(((KickedFromServerEvent.RedirectPlayer) event.getResult()).getServer()) : null,
                 event.kickedDuringServerConnect() ? ServerKickEvent.State.CONNECTING : ServerKickEvent.State.CONNECTED,
                 ServerKickEvent.Cause.UNKNOWN
         );
@@ -51,32 +47,10 @@ public class ServerKickListener extends ForwardingListener {
             if (e.getCancelServer() != null) {
                 event.setResult(KickedFromServerEvent.RedirectPlayer.create(((SnapServerInfo) e.getCancelServer()).getServer(), SnapUtils.convertComponent(e.getKickReasonComponent())));
             } else {
-                event.setResult(KickedFromServerEvent.DisconnectPlayer.create(SnapUtils.convertComponent(e.getKickReasonComponent())));
+                event.setResult(KickedFromServerEvent.Notify.create(SnapUtils.convertComponent(e.getKickReasonComponent())));
             }
-        } else if (event.getResult() instanceof KickedFromServerEvent.Notify) {
-            event.setResult(KickedFromServerEvent.Notify.create(SnapUtils.convertComponent(e.getKickReasonComponent())));
-        } else if (event.getResult() instanceof KickedFromServerEvent.RedirectPlayer) {
-            event.setResult(KickedFromServerEvent.RedirectPlayer.create(((KickedFromServerEvent.RedirectPlayer) event.getResult()).getServer(), SnapUtils.convertComponent(e.getKickReasonComponent())));
-        } else if (event.getResult() instanceof KickedFromServerEvent.DisconnectPlayer) {
+        } else {
             event.setResult(KickedFromServerEvent.DisconnectPlayer.create(SnapUtils.convertComponent(e.getKickReasonComponent())));
         }
-    }
-
-    private ServerInfo getNextServer(RegisteredServer server) {
-        Optional<RegisteredServer> next = Optional.empty();
-
-        boolean found = false;
-        for (String serverName : snap.getProxy().getConfiguration().getAttemptConnectionOrder()) {
-            if (!found && serverName.equalsIgnoreCase(server.getServerInfo().getName())) {
-                found = true;
-            } else if (found) {
-                next = snap.getProxy().getServer(serverName);
-                if (next.isPresent()) {
-                    break;
-                }
-            }
-        }
-
-        return next.map(snap::getServerInfo).orElse(null);
     }
 }
