@@ -19,7 +19,6 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.proxy.server.QueryResponse;
 import de.themoep.snap.Snap;
 import io.github.waterfallmc.waterfall.QueryResult;
 import io.github.waterfallmc.waterfall.event.ProxyQueryEvent;
@@ -50,7 +49,7 @@ public class ProxyQueryListener extends ForwardingListener {
                 )
         )).getResult();
 
-        event.setResponse(QueryResponse.builder()
+        event.setResponse(event.getResponse().toBuilder()
                 .hostname(r.getMotd())
                 //.gameType(r.getGameType()) // TODO: Not supported
                 .map(r.getWorldName())
