@@ -543,6 +543,12 @@ public class SnapProxyServer extends ProxyServer {
                 snap.unsupported();
                 return true;
             }
+
+            @Override
+            public boolean isDisableTabListRewrite() {
+                snap.unsupported();
+                return true;
+            }
         };
     }
 

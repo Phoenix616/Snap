@@ -24,6 +24,7 @@ import com.velocitypowered.api.util.ModInfo;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
 import net.kyori.adventure.audience.MessageType;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ChatMessageType;
@@ -171,6 +172,16 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
     @Override
     public void sendMessage(ChatMessageType position, BaseComponent message) {
         sendMessage(position, new BaseComponent[]{message});
+    }
+
+    @Override
+    public void sendMessage(UUID uuid, BaseComponent... message) {
+        player.sendMessage(Identity.identity(uuid), SnapUtils.convertComponent(message));
+    }
+
+    @Override
+    public void sendMessage(UUID uuid, BaseComponent message) {
+        player.sendMessage(Identity.identity(uuid), SnapUtils.convertComponent(message));
     }
 
     @Override
