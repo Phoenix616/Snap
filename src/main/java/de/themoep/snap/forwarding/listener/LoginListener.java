@@ -18,6 +18,7 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
 import de.themoep.snap.Snap;
@@ -31,12 +32,17 @@ public class LoginListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.connection.LoginEvent event) {
+    public void on(com.velocitypowered.api.event.connection.LoginEvent event, Continuation continuation) {
         LoginEvent e = new LoginEvent(snap.getPlayer(event.getPlayer()).getPendingConnection(), (le, t) -> {
             if (le.isCancelled() && event.getResult().isAllowed()) {
                 event.setResult(ResultedEvent.ComponentResult.denied(SnapUtils.convertComponent(le.getCancelReasonComponents())));
             } else if (!le.isCancelled() && !event.getResult().isAllowed()) {
                 event.setResult(ResultedEvent.ComponentResult.allowed());
+            }
+            if (t != null) {
+                continuation.resumeWithException(t);
+            } else {
+                continuation.resume();
             }
         });
         if (!event.getResult().isAllowed()) {

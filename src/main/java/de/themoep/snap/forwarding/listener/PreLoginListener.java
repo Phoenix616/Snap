@@ -18,6 +18,7 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
 import de.themoep.snap.Snap;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
@@ -38,7 +39,7 @@ public class PreLoginListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.connection.PreLoginEvent event) {
+    public void on(com.velocitypowered.api.event.connection.PreLoginEvent event, Continuation continuation) {
         if (!event.getResult().isAllowed()) {
             return;
         }
@@ -144,6 +145,11 @@ public class PreLoginListener extends ForwardingListener {
             if (e.isCancelled()) {
                 event.setResult(com.velocitypowered.api.event.connection.PreLoginEvent.PreLoginComponentResult.denied(
                         BungeeComponentSerializer.get().deserialize(e .getCancelReasonComponents())));
+            }
+            if (t != null) {
+                continuation.resumeWithException(t);
+            } else {
+                continuation.resume();
             }
         }));
 

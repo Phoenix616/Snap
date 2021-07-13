@@ -18,6 +18,7 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
@@ -33,7 +34,7 @@ public class ConnectionInitListener extends ForwardingListener {
     }
 
     @Subscribe(order = PostOrder.EARLY)
-    public void on(PreLoginEvent event) {
+    public void on(PreLoginEvent event, Continuation continuation) {
         if (!event.getResult().isAllowed()) {
             return;
         }
@@ -44,6 +45,11 @@ public class ConnectionInitListener extends ForwardingListener {
                 (e, t) -> {
                     if (e.isCancelled()) {
                         event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("ConnectionInitEvent Cancelled")));
+                    }
+                    if (t != null) {
+                        continuation.resumeWithException(t);
+                    } else {
+                        continuation.resume();
                     }
                 }
         ));

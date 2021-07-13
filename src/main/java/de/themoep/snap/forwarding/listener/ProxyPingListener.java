@@ -18,6 +18,7 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
 import de.themoep.snap.Snap;
 import de.themoep.snap.SnapUtils;
@@ -30,12 +31,17 @@ public class ProxyPingListener extends ForwardingListener {
     }
 
     @Subscribe
-    public void on(com.velocitypowered.api.event.proxy.ProxyPingEvent event) {
+    public void on(com.velocitypowered.api.event.proxy.ProxyPingEvent event, Continuation continuation) {
         snap.getBungeeAdapter().getPluginManager().callEvent(new ProxyPingEvent(
                 convertConnection(event.getConnection()),
                 SnapUtils.convertPing(event.getPing()),
-                (e, throwable) -> {
+                (e, t) -> {
                     event.setPing(SnapUtils.convertPing(e.getResponse()));
+                    if (t != null) {
+                        continuation.resumeWithException(t);
+                    } else {
+                        continuation.resume();
+                    }
                 }));
     }
 }
