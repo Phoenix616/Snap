@@ -41,7 +41,12 @@ public class ClientConnectListener extends ForwardingListener {
         e.setCancelled(!event.getResult().isAllowed());
         snap.getBungeeAdapter().getPluginManager().callEvent(e);
         if (e.isCancelled()) {
-            event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("ClientConnectEvent Cancelled")));
+            boolean originallyAllowed = event.getResult().isAllowed();
+            if (originallyAllowed) {
+                event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("ClientConnectEvent Cancelled")));
+            }
+        } else {
+            event.setResult(PreLoginEvent.PreLoginComponentResult.allowed());
         }
     }
 }
