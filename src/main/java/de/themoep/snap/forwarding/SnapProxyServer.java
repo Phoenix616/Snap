@@ -549,6 +549,18 @@ public class SnapProxyServer extends ProxyServer {
                 snap.unsupported();
                 return true;
             }
+
+            @Override
+            public int getPluginChannelLimit() {
+                snap.unsupported();
+                return Integer.MAX_VALUE;
+            }
+
+            @Override
+            public int getPluginChannelNameLimit() {
+                snap.unsupported();
+                return Integer.MAX_VALUE;
+            }
         };
     }
 
