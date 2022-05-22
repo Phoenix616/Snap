@@ -11,6 +11,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.themoep.snap.forwarding.SnapPlayer;
 import de.themoep.snap.forwarding.SnapServerInfo;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -23,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
+@Getter
 public class Snap {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -81,34 +83,6 @@ public class Snap {
         return false;
     }
 
-    public PluginConfig getConfig() {
-        return config;
-    }
-
-    public ProxyServer getProxy() {
-        return proxy;
-    }
-
-    public Logger getLogger() {
-        return logger;
-    }
-
-    public Path getDataFolder() {
-        return dataFolder;
-    }
-
-    public SnapBungeeAdapter getBungeeAdapter() {
-        return bungeeAdapter;
-    }
-
-    public Map<UUID, SnapPlayer> getPlayers() {
-        return players;
-    }
-
-    public Map<String, SnapPlayer> getPlayerNames() {
-        return playerNames;
-    }
-
     public SnapPlayer getPlayer(Player player) {
         SnapPlayer p = players.computeIfAbsent(player.getUniqueId(), u -> new SnapPlayer(this, player));
         playerNames.putIfAbsent(p.getName(), p);
@@ -120,10 +94,6 @@ public class Snap {
             return null;
         }
         return servers.computeIfAbsent(server.getServerInfo().getName(), u -> new SnapServerInfo(this, server));
-    }
-
-    public Map<String, SnapServerInfo> getServers() {
-        return servers;
     }
 
     public Object unsupported(String... message) {
