@@ -25,7 +25,7 @@ import net.md_5.bungee.api.event.ProxyReloadEvent;
 public class ProxyReloadListener extends ForwardingListener {
 
     public ProxyReloadListener(Snap snap) {
-        super(snap);
+        super(snap, ProxyReloadEvent.class);
     }
 
     @Subscribe

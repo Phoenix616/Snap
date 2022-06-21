@@ -31,7 +31,7 @@ import net.md_5.bungee.api.event.PluginMessageEvent;
 public class PluginMessageListener extends ForwardingListener {
 
     public PluginMessageListener(Snap snap) {
-        super(snap);
+        super(snap, PluginMessageEvent.class);
     }
 
     @Subscribe

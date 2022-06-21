@@ -27,7 +27,7 @@ import net.md_5.bungee.api.event.TabCompleteResponseEvent;
 public class TabCompleteResponseListener extends ForwardingListener {
 
     public TabCompleteResponseListener(Snap snap) {
-        super(snap);
+        super(snap, TabCompleteResponseEvent.class);
     }
 
     @Subscribe

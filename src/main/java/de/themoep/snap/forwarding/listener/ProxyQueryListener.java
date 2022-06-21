@@ -28,7 +28,7 @@ import java.util.ArrayList;
 public class ProxyQueryListener extends ForwardingListener {
 
     public ProxyQueryListener(Snap snap) {
-        super(snap);
+        super(snap, ProxyQueryEvent.class);
     }
 
     @Subscribe

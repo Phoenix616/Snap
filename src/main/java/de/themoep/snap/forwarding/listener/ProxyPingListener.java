@@ -27,7 +27,7 @@ import net.md_5.bungee.api.event.ProxyPingEvent;
 public class ProxyPingListener extends ForwardingListener {
 
     public ProxyPingListener(Snap snap) {
-        super(snap);
+        super(snap, ProxyPingEvent.class);
     }
 
     @Subscribe

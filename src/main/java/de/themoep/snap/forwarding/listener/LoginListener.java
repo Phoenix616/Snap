@@ -28,7 +28,7 @@ import net.md_5.bungee.api.event.LoginEvent;
 public class LoginListener extends ForwardingListener {
 
     public LoginListener(Snap snap) {
-        super(snap);
+        super(snap, LoginEvent.class);
     }
 
     @Subscribe

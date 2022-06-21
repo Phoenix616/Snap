@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 public class PlayerHandshakeListener extends ForwardingListener {
 
     public PlayerHandshakeListener(Snap snap) {
-        super(snap);
+        super(snap, PlayerHandshakeEvent.class);
     }
 
     @Subscribe

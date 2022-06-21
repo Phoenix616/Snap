@@ -28,6 +28,7 @@ import de.themoep.snap.forwarding.SnapProxyServer;
 import de.themoep.snap.forwarding.listener.ChatListener;
 import de.themoep.snap.forwarding.listener.ClientConnectListener;
 import de.themoep.snap.forwarding.listener.ConnectionInitListener;
+import de.themoep.snap.forwarding.listener.ForwardingListener;
 import de.themoep.snap.forwarding.listener.LoginListener;
 import de.themoep.snap.forwarding.listener.PlayerDisconnectListener;
 import de.themoep.snap.forwarding.listener.PlayerHandshakeListener;
@@ -48,6 +49,7 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
+import net.md_5.bungee.event.EventBus;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
@@ -56,7 +58,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Handler;
 
@@ -65,6 +69,9 @@ public class SnapBungeeAdapter {
     private final PluginManager pluginManager;
     private final File pluginsFolder;
     private final Snap snap;
+    private final List<ForwardingListener> forwardingListeners = new ArrayList<>();
+
+    private final Map<Class<?>, Map<Byte, Map<Object, Method[]>>> registeredBungeeListeners;
 
     SnapBungeeAdapter(Snap snap) throws ClassNotFoundException, IllegalAccessException, NoSuchFieldException, IOException, NoSuchMethodException, InvocationTargetException {
         this.snap = snap;
@@ -88,37 +95,55 @@ public class SnapBungeeAdapter {
         constructor.setPropertyUtils(properties);
         Yaml yaml = new Yaml(constructor);
         fYaml.set(pluginManager, yaml);
+
+        // Get event bus from PluginManager
+        Field fEventBus = pluginManager.getClass().getDeclaredField("eventBus");
+        fEventBus.setAccessible(true);
+        EventBus eventBus = (EventBus) fEventBus.get(pluginManager);
+
+        // Get listener map from EventBus
+        Field fListeners = eventBus.getClass().getDeclaredField("byListenerAndPriority");
+        fListeners.setAccessible(true);
+        registeredBungeeListeners = (Map<Class<?>, Map<Byte, Map<Object, Method[]>>>) fListeners.get(eventBus);
+
+        setupEvents();
     }
 
-    void registerEvents() {
+    private void setupEvents() {
         // Register forwarding events
-        snap.getProxy().getEventManager().register(snap, new ChatListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ClientConnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ConnectionInitListener(snap));
-        snap.getProxy().getEventManager().register(snap, new LoginListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PlayerDisconnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PlayerHandshakeListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PluginMessageListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PostLoginListener(snap));
-        snap.getProxy().getEventManager().register(snap, new PreLoginListener(snap));
-        // TODO snap.getProxy().getEventManager().register(snap, new ProxyDefineCommandListener(snap)); hard to convert :S
-        snap.getProxy().getEventManager().register(snap, new ProxyPingListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ProxyQueryListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ProxyReloadListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerConnectedListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerConnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerDisconnectListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerKickListener(snap));
-        snap.getProxy().getEventManager().register(snap, new ServerSwitchListener(snap));
-        snap.getProxy().getEventManager().register(snap, new SettingsChangedListener(snap));
-        // TODO snap.getProxy().getEventManager().register(snap, new TabCompleteListener(snap)); no real Velocity equivalent
-        snap.getProxy().getEventManager().register(snap, new TabCompleteResponseListener(snap));
+        addListener(new ChatListener(snap));
+        addListener(new ClientConnectListener(snap));
+        addListener(new ConnectionInitListener(snap));
+        addListener(new LoginListener(snap));
+        addListener(new PlayerDisconnectListener(snap));
+        addListener(new PlayerHandshakeListener(snap));
+        addListener(new PluginMessageListener(snap));
+        addListener(new PostLoginListener(snap));
+        addListener(new PreLoginListener(snap));
+        // TODO addListener(new ProxyDefineCommandListener(snap)); hard to convert :S
+        addListener(new ProxyPingListener(snap));
+        addListener(new ProxyQueryListener(snap));
+        addListener(new ProxyReloadListener(snap));
+        addListener(new ServerConnectedListener(snap));
+        addListener(new ServerConnectListener(snap));
+        addListener(new ServerDisconnectListener(snap));
+        addListener(new ServerKickListener(snap));
+        addListener(new ServerSwitchListener(snap));
+        addListener(new SettingsChangedListener(snap));
+        // TODO addListener(tnew TabCompleteListener(snap)); no real Velocity equivalent
+        addListener(new TabCompleteResponseListener(snap));
+    }
+
+    private void addListener(ForwardingListener listener) {
+        forwardingListeners.add(listener);
     }
 
     void loadPlugins() {
         pluginManager.detectPlugins(pluginsFolder);
         pluginManager.loadPlugins();
         pluginManager.enablePlugins();
+
+        registerForwardingListeners();
 
         CommandManager cm = snap.getProxy().getCommandManager();
         for (Map.Entry<String, Command> e : pluginManager.getCommands()) {
@@ -151,6 +176,23 @@ public class SnapBungeeAdapter {
         }
 
         snap.getLogger().info("Loaded " + pluginManager.getPlugins().size() + " plugins!");
+    }
+
+    /**
+     * Register the forwarding listeners that are required for the events of the plugins to work
+     */
+    private void registerForwardingListeners() {
+        for (ForwardingListener forwardingListener : forwardingListeners) {
+            if (snap.shouldRegisterAllForwardingListeners()
+                    || registeredBungeeListeners.containsKey(forwardingListener.getForwardedEvent())) {
+                snap.getLogger().info("Registering forwarding listener for " + forwardingListener.getForwardedEvent().getSimpleName());
+                // TODO: actually use the priority
+                snap.getProxy().getEventManager().register(snap, forwardingListener);
+            }
+        }
+        if (!snap.shouldRegisterAllForwardingListeners()) {
+            snap.getLogger().info("If you experience some plugin-event-listeners to not work properly then set register-all-listeners = true in the snap.conf!");
+        }
     }
 
     public SnapProxyServer getProxy() {

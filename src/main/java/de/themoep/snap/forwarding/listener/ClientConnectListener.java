@@ -29,7 +29,7 @@ public class ClientConnectListener extends ForwardingListener {
 
     // TODO: Find better implementation as this has no real Velocity equivalent
     public ClientConnectListener(Snap snap) {
-        super(snap);
+        super(snap, ClientConnectEvent.class);
     }
 
     @Subscribe(order = PostOrder.FIRST)

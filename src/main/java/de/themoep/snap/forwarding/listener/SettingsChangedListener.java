@@ -26,7 +26,7 @@ import net.md_5.bungee.api.event.SettingsChangedEvent;
 public class SettingsChangedListener extends ForwardingListener {
 
     public SettingsChangedListener(Snap snap) {
-        super(snap);
+        super(snap, SettingsChangedEvent.class);
     }
 
     @Subscribe

@@ -30,7 +30,7 @@ public class ConnectionInitListener extends ForwardingListener {
 
     // TODO: Find better implementation as this has no real Velocity equivalent
     public ConnectionInitListener(Snap snap) {
-        super(snap);
+        super(snap, ConnectionInitEvent.class);
     }
 
     @Subscribe(order = PostOrder.EARLY)

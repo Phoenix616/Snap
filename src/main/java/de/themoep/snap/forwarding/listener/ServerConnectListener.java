@@ -27,7 +27,7 @@ import net.md_5.bungee.api.event.ServerConnectEvent;
 public class ServerConnectListener extends ForwardingListener {
 
     public ServerConnectListener(Snap snap) {
-        super(snap);
+        super(snap, ServerConnectEvent.class);
     }
 
     @Subscribe

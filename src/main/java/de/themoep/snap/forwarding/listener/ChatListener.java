@@ -27,7 +27,7 @@ import net.md_5.bungee.api.event.ChatEvent;
 public class ChatListener extends ForwardingListener {
 
     public ChatListener(Snap snap) {
-        super(snap);
+        super(snap, ChatEvent.class);
     }
 
     @Subscribe

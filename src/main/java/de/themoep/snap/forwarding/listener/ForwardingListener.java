@@ -23,6 +23,7 @@ import de.themoep.snap.Snap;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
+import net.md_5.bungee.api.plugin.Event;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -30,9 +31,15 @@ import java.util.UUID;
 
 public abstract class ForwardingListener {
     protected final Snap snap;
+    private final Class<? extends Event> forwardedEvent;
 
-    public ForwardingListener(Snap snap) {
+    public ForwardingListener(Snap snap, Class<? extends Event> forwardedEvent) {
         this.snap = snap;
+        this.forwardedEvent = forwardedEvent;
+    }
+
+    public Class<? extends Event> getForwardedEvent() {
+        return forwardedEvent;
     }
 
     protected PendingConnection convertConnection(InboundConnection connection) {

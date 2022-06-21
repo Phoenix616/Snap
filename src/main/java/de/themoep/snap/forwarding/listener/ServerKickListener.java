@@ -28,7 +28,7 @@ import net.md_5.bungee.api.event.ServerKickEvent;
 public class ServerKickListener extends ForwardingListener {
 
     public ServerKickListener(Snap snap) {
-        super(snap);
+        super(snap, ServerKickEvent.class);
     }
 
     @Subscribe

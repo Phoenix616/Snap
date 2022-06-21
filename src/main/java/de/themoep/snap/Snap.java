@@ -32,6 +32,7 @@ public class Snap {
     private PluginConfig config;
 
     private boolean throwUnsupportedException = true;
+    private boolean registerAllForwardingListeners = false;
 
     private Map<UUID, SnapPlayer> players = new ConcurrentHashMap<>();
     private Map<String, SnapPlayer> playerNames = new ConcurrentHashMap<>();
@@ -59,7 +60,6 @@ public class Snap {
                 config.save();
             }
             bungeeAdapter = new SnapBungeeAdapter(this);
-            bungeeAdapter.registerEvents();
             bungeeAdapter.loadPlugins();
             getProxy().getEventManager().register(this, new SnapListener(this));
         } else {
@@ -76,6 +76,7 @@ public class Snap {
         }
         if (config.load()) {
             throwUnsupportedException = config.getBoolean("throw-unsupported-exception", throwUnsupportedException);
+            registerAllForwardingListeners = config.getBoolean("register-all-listeners", registerAllForwardingListeners);
             return true;
         }
         return false;
@@ -83,6 +84,10 @@ public class Snap {
 
     public PluginConfig getConfig() {
         return config;
+    }
+
+    public boolean shouldRegisterAllForwardingListeners() {
+        return registerAllForwardingListeners;
     }
 
     public ProxyServer getProxy() {

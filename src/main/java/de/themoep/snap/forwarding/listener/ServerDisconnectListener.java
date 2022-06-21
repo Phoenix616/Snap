@@ -28,7 +28,7 @@ public class ServerDisconnectListener extends ForwardingListener {
 
     // TODO: Find better implementation as this has no real Velocity equivalent
     public ServerDisconnectListener(Snap snap) {
-        super(snap);
+        super(snap, ServerDisconnectEvent.class);
     }
 
     @Subscribe(order = PostOrder.LAST)

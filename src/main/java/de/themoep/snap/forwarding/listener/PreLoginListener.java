@@ -35,7 +35,7 @@ import java.util.UUID;
 public class PreLoginListener extends ForwardingListener {
 
     public PreLoginListener(Snap snap) {
-        super(snap);
+        super(snap, PreLoginEvent.class);
     }
 
     @Subscribe
