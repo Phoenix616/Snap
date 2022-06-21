@@ -19,12 +19,8 @@
 
     <repositories>
         <repository>
-            <id>velocity-repo</id>
-            <url>https://repo.velocitypowered.com/releases/</url>
-        </repository>
-        <repository>
-            <id>waterfall-repo</id>
-            <url>https://papermc.io/repo/repository/maven-snapshots/</url>
+            <id>papermc-repo</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
     </repositories>
 
@@ -32,45 +28,45 @@
         <dependency>
             <groupId>com.velocitypowered</groupId>
             <artifactId>velocity-api</artifactId>
-            <version>3.0.0</version>
+            <version>3.1.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.github.waterfallmc</groupId>
             <artifactId>waterfall-api</artifactId>
-            <version>1.18-R0.1-SNAPSHOT</version>
+            <version>1.19-R0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- API requirements, not actually part of API -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-resolver-provider</artifactId>
-            <version>3.8.4</version>
+            <version>3.8.5</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-connector-basic</artifactId>
-            <version>1.7.2</version>
+            <version>1.8.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-transport-http</artifactId>
-            <version>1.7.2</version>
+            <version>1.8.0</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-platform-bungeecord</artifactId>
-            <version>4.0.0</version>
+            <version>4.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.33</version>
+            <version>1.7.36</version>
             <scope>compile</scope>
         </dependency>
 
@@ -84,7 +80,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.27</version>
+            <version>8.0.29</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
