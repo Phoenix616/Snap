@@ -213,6 +213,8 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public ServerInfo getServerInfo(String name) {
+        // Bungee returns null if the server name is null instead of throwing an error...
+        if (name == null) return null;
         return snap.getProxy().getServer(name).map(snap::getServerInfo).orElse(null);
     }
 
