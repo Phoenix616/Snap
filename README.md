@@ -46,7 +46,7 @@ If you are sure that the plugin will work fine otherwise then you can have it re
 ### Not supported:
 
 - Using Bungee's **inbuilt permissions system** to set and get groups/permissions. 
-  Don't. Use LuckPerms on Velocity. (hasPermission checks work though)
+  Don't! Please use LuckPerms on Velocity. (hasPermission checks work though)
 - **Reconnect server functionality.** That's an inbuilt function in Bungee but better 
   suited for a plugin. The related methods will return `null` or set nothing. Instead
   of erroring.
