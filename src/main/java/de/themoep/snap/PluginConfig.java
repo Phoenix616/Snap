@@ -17,11 +17,10 @@ package de.themoep.snap;
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import com.typesafe.config.ConfigParseOptions;
-import com.typesafe.config.ConfigRenderOptions;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
+
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,9 +50,7 @@ public class PluginConfig {
         this.configFile = configFile;
         this.defaultFile = defaultFile;
         configLoader = HoconConfigurationLoader.builder()
-                .setPath(configFile)
-                .setParseOptions(ConfigParseOptions.defaults())
-                .setRenderOptions(ConfigRenderOptions.defaults())
+                .path(configFile)
                 .build();
     }
 
@@ -62,13 +59,11 @@ public class PluginConfig {
             config = configLoader.load();
             if (defaultFile != null && plugin.getClass().getClassLoader().getResource(defaultFile) != null) {
                 defaultConfig = HoconConfigurationLoader.builder()
-                        .setPath(configFile)
-                        .setParseOptions(ConfigParseOptions.defaults())
-                        .setRenderOptions(ConfigRenderOptions.defaults())
-                        .setSource(() -> new BufferedReader(new InputStreamReader(plugin.getClass().getClassLoader().getResourceAsStream(defaultFile))))
+                        .path(configFile)
+                        .source(() -> new BufferedReader(new InputStreamReader(plugin.getClass().getClassLoader().getResourceAsStream(defaultFile))))
                         .build()
                         .load();
-                if (config.isEmpty()) {
+                if (config.empty()) {
                     config = defaultConfig.copy();
                 }
             }
@@ -113,15 +108,24 @@ public class PluginConfig {
     }
 
     public Object set(String path, Object value) {
-        ConfigurationNode node = config.getNode(splitPath(path));
-        Object prev = node.getValue();
-        node.setValue(value);
+        ConfigurationNode node = config.node(splitPath(path));
+        Object prev = node.raw();
+        try {
+            node.set(value);
+        } catch (SerializationException e) {
+            plugin.getLogger().error("Could not set node at " + path, e);
+        }
         return prev;
     }
 
     public ConfigurationNode remove(String path) {
-        ConfigurationNode node = config.getNode(splitPath(path));
-        return node.isVirtual() ? node : node.setValue(null);
+        ConfigurationNode node = config.node(splitPath(path));
+        try {
+            return node.virtual() ? node : node.set(null);
+        } catch (SerializationException e) {
+            plugin.getLogger().error("Could not remove node at " + path, e);
+            return null;
+        }
     }
 
     public ConfigurationNode getRawConfig() {
@@ -129,15 +133,15 @@ public class PluginConfig {
     }
 
     public ConfigurationNode getRawConfig(String path) {
-        return getRawConfig().getNode(splitPath(path));
+        return getRawConfig().node(splitPath(path));
     }
 
     public boolean has(String path) {
-        return !getRawConfig(path).isVirtual();
+        return !getRawConfig(path).virtual();
     }
 
     public boolean isSection(String path) {
-        return getRawConfig(path).hasMapChildren();
+        return getRawConfig(path).isMap();
     }
     
     public int getInt(String path) {
@@ -157,7 +161,7 @@ public class PluginConfig {
     }
     
     public String getString(String path) {
-        return getString(path, null);
+        return getRawConfig(path).getString();
     }
 
     public String getString(String path, String def) {

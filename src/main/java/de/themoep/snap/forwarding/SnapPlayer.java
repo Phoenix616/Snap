@@ -47,6 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
@@ -106,6 +107,20 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
             @Override
             public boolean isLegacy() {
                 return player.getProtocolVersion().isLegacy();
+            }
+
+            @Override
+            public boolean isTransferred() {
+                // TODO: Support 1.20.5 features
+                snap.unsupported("Transferred connections are not supported in Velocity's API yet!");
+                return false;
+            }
+
+            @Override
+            public CompletableFuture<byte[]> retrieveCookie(String s) {
+                // TODO: Support 1.20.5 features
+                snap.unsupported("Transferred connections and cookies are not supported in Velocity's API yet!");
+                return null;
             }
 
             @Override
@@ -421,6 +436,25 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
     public Scoreboard getScoreboard() {
         // TODO: Support that? How? Velocity doesn't do this.
         return (Scoreboard) snap.unsupported("Scoreboards are not supported by Snap");
+    }
+
+    @Override
+    public CompletableFuture<byte[]> retrieveCookie(String s) {
+        // TODO: Support 1.20.5 features
+        snap.unsupported("Transferred connections and cookies are not supported in Velocity's API yet!");
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public void storeCookie(String s, byte[] bytes) {
+        // TODO: Support 1.20.5 features
+        snap.unsupported("Transferred connections and cookies are not supported in Velocity's API yet!");
+    }
+
+    @Override
+    public void transfer(String s, int i) {
+        // TODO: Support 1.20.5 features
+        snap.unsupported("Transferred connections and cookies are not supported in Velocity's API yet!");
     }
 
     @Override

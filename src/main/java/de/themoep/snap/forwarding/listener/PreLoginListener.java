@@ -31,6 +31,7 @@ import net.md_5.bungee.api.event.PreLoginEvent;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class PreLoginListener extends ForwardingListener {
 
@@ -105,6 +106,20 @@ public class PreLoginListener extends ForwardingListener {
             @Override
             public boolean isLegacy() {
                 return event.getConnection().getProtocolVersion().isLegacy();
+            }
+
+            @Override
+            public boolean isTransferred() {
+                // TODO: Support 1.20.5 features
+                snap.unsupported("Transferred connections are not supported in Velocity's API yet!");
+                return false;
+            }
+
+            @Override
+            public CompletableFuture<byte[]> retrieveCookie(String s) {
+                // TODO: Support 1.20.5 features
+                snap.unsupported("Transferred connections and cookies are not supported in Velocity's API yet!");
+                return null;
             }
 
             @Override
