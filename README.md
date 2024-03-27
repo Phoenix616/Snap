@@ -108,8 +108,9 @@ Yes, the base code of Snap is open source! Unless noted otherwise in the source 
  License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ```
 
-Please note that BungeeCord is licensed under their own, BSD 3-Clause based
- [license](https://github.com/SpigotMC/BungeeCord/blob/master/LICENSE) and that Waterfall uses
+Please note that BungeeCord is not Free Software and licensed under their own, BSD 3-Clause based
+ [license](https://github.com/SpigotMC/BungeeCord/blob/master/LICENSE) (which forbids usage of BungeeCord "for commercial software hosting services without
+written permission from the author") and that Waterfall uses
  an [MIT License](https://github.com/PaperMC/Waterfall/blob/master/LICENSE.txt) for its patches.
 
 Therefore pre-built binaries of Snap would have to be  distributed under Bungee's modified BSD 3-Clause license or a compatible one.
