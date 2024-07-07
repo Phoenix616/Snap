@@ -34,7 +34,7 @@
         <dependency>
             <groupId>io.github.waterfallmc</groupId>
             <artifactId>waterfall-api</artifactId>
-            <version>1.20-R0.3-SNAPSHOT</version>
+            <version>1.21-R0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- API requirements, not actually part of API -->

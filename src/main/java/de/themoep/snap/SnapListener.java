@@ -20,10 +20,14 @@ package de.themoep.snap;
 
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.ConnectionHandshakeEvent;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.player.CookieReceiveEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.network.HandshakeIntent;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.util.GameProfile;
 
 import java.util.UUID;
@@ -36,6 +40,13 @@ public class SnapListener {
 
     public SnapListener(Snap snap) {
         this.snap = snap;
+    }
+
+    @Subscribe
+    public void onHandshake(ConnectionHandshakeEvent event) {
+        if (event.getIntent() == HandshakeIntent.TRANSFER && event.getConnection() instanceof Player player) {
+            snap.markTransferred(player);
+        }
     }
 
     @Subscribe(order = PostOrder.FIRST)
@@ -55,8 +66,7 @@ public class SnapListener {
 
     @Subscribe(order = PostOrder.LAST)
     public void onPlayerQuit(DisconnectEvent event) {
-        snap.getPlayers().remove(event.getPlayer().getUniqueId());
-        snap.getPlayerNames().remove(event.getPlayer().getUsername());
+        snap.invalidate(event.getPlayer());
     }
 
     @Subscribe
@@ -69,6 +79,13 @@ public class SnapListener {
         UUID playerId = snap.pullCachedUuidForUsername(event.getUsername());
         if (playerId != null && !event.isOnlineMode() && !event.getGameProfile().getId().equals(playerId)) {
             event.setGameProfile(new GameProfile(playerId, event.getGameProfile().getName(), event.getGameProfile().getProperties()));
+        }
+    }
+
+    @Subscribe
+    public void onCookieReceive(CookieReceiveEvent event) {
+        if (snap.completeCookieRequest(event.getPlayer(), event.getResult().getKey(), event.getResult().getData())) {
+            event.setResult(CookieReceiveEvent.ForwardResult.handled());
         }
     }
 }

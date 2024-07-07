@@ -18,8 +18,12 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.event.Continuation;
+import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent;
 import de.themoep.snap.Snap;
+import de.themoep.snap.forwarding.SnapServerInfo;
 import net.md_5.bungee.api.event.PostLoginEvent;
 
 public class PostLoginListener extends ForwardingListener {
@@ -28,9 +32,25 @@ public class PostLoginListener extends ForwardingListener {
         super(snap, PostLoginEvent.class);
     }
 
-    @Subscribe
-    public void on(com.velocitypowered.api.event.connection.PostLoginEvent event) {
-        snap.getBungeeAdapter().getPluginManager().callEvent(new PostLoginEvent(snap.getPlayer(event.getPlayer())));
+    @Subscribe(order = PostOrder.FIRST)
+    public void on(PlayerChooseInitialServerEvent event, Continuation continuation) {
+        snap.getBungeeAdapter().getPluginManager().callEvent(new PostLoginEvent(
+                snap.getPlayer(event.getPlayer()),
+                snap.getServerInfo(event.getInitialServer().orElse(null)),
+                (e, t) -> {
+                    if (e.getTarget() != null) {
+                        event.setInitialServer(((SnapServerInfo) e.getTarget()).getServer());
+                    } else {
+                        event.setInitialServer(null);
+                    }
+                    if (t != null) {
+                        continuation.resumeWithException(t);
+                    } else {
+                        continuation.resume();
+                    }
+                }
+        ));
+
     }
 
 }

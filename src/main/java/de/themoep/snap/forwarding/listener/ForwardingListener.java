@@ -19,6 +19,7 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.proxy.InboundConnection;
+import com.velocitypowered.api.proxy.Player;
 import de.themoep.snap.Snap;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -97,16 +98,16 @@ public abstract class ForwardingListener {
 
             @Override
             public boolean isTransferred() {
-                // TODO: Support 1.20.5 features
-                snap.unsupported("Transferred connections are not supported in Velocity's API yet!");
+                if (connection instanceof Player player) {
+                    return snap.isTransferred(player.getUniqueId());
+                }
+                snap.unsupported("Tried to check an InboundConnection which is not a Player (" + connection.getClass().getName() + ") for whether it was transferred!");
                 return false;
             }
 
             @Override
-            public CompletableFuture<byte[]> retrieveCookie(String s) {
-                // TODO: Support 1.20.5 features
-                snap.unsupported("Transferred connections and cookies are not supported in Velocity's API yet!");
-                return null;
+            public CompletableFuture<byte[]> retrieveCookie(String key) {
+                return snap.retrieveCookie(connection, key);
             }
 
             @Override

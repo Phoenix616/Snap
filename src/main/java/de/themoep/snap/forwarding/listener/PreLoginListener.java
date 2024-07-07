@@ -110,16 +110,12 @@ public class PreLoginListener extends ForwardingListener {
 
             @Override
             public boolean isTransferred() {
-                // TODO: Support 1.20.5 features
-                snap.unsupported("Transferred connections are not supported in Velocity's API yet!");
-                return false;
+                return snap.isTransferred(event.getUniqueId());
             }
 
             @Override
-            public CompletableFuture<byte[]> retrieveCookie(String s) {
-                // TODO: Support 1.20.5 features
-                snap.unsupported("Transferred connections and cookies are not supported in Velocity's API yet!");
-                return null;
+            public CompletableFuture<byte[]> retrieveCookie(String key) {
+                return snap.retrieveCookie(event.getConnection(), key);
             }
 
             @Override
