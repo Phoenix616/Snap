@@ -19,22 +19,21 @@ package de.themoep.snap.forwarding.listener;
  */
 
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.player.TabCompleteEvent;
 import de.themoep.snap.Snap;
 import de.themoep.snap.forwarding.SnapServer;
-import net.md_5.bungee.api.event.TabCompleteResponseEvent;
 
-public class TabCompleteResponseListener extends ForwardingListener {
+public class TabCompleteListener extends ForwardingListener {
 
-    public TabCompleteResponseListener(Snap snap) {
-        super(snap, TabCompleteResponseEvent.class);
+    public TabCompleteListener(Snap snap) {
+        super(snap, net.md_5.bungee.api.event.TabCompleteEvent.class);
     }
 
-    @Subscribe(priority = 5)
-    public void on(TabCompleteEvent event) {
-        TabCompleteResponseEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new TabCompleteResponseEvent(
-                event.getPlayer().getCurrentServer().map(s -> new SnapServer(snap, s)).orElse(null),
+    @Subscribe(priority = 10)
+    public void on(com.velocitypowered.api.event.player.TabCompleteEvent event) {
+        net.md_5.bungee.api.event.TabCompleteEvent e = snap.getBungeeAdapter().getPluginManager().callEvent(new net.md_5.bungee.api.event.TabCompleteEvent(
                 snap.getPlayer(event.getPlayer()),
+                event.getPlayer().getCurrentServer().map(s -> new SnapServer(snap, s)).orElse(null),
+                event.getPartialMessage(),
                 event.getSuggestions()
         ));
         event.getSuggestions().clear();

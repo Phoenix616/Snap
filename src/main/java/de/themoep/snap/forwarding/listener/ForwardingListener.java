@@ -18,9 +18,12 @@ package de.themoep.snap.forwarding.listener;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.network.HandshakeIntent;
 import com.velocitypowered.api.proxy.InboundConnection;
+import com.velocitypowered.api.proxy.LoginPhaseConnection;
 import com.velocitypowered.api.proxy.Player;
 import de.themoep.snap.Snap;
+import de.themoep.snap.SnapUtils;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
@@ -45,6 +48,10 @@ public abstract class ForwardingListener {
     }
 
     protected PendingConnection convertConnection(InboundConnection connection) {
+        if (connection instanceof Player player) {
+            return snap.getPlayer(player).getPendingConnection();
+        }
+
         return new PendingConnection() {
             @Override
             public String getName() {
@@ -98,11 +105,7 @@ public abstract class ForwardingListener {
 
             @Override
             public boolean isTransferred() {
-                if (connection instanceof Player player) {
-                    return snap.isTransferred(player.getUniqueId());
-                }
-                snap.unsupported("Tried to check an InboundConnection which is not a Player (" + connection.getClass().getName() + ") for whether it was transferred!");
-                return false;
+                return connection.getHandshakeIntent() == HandshakeIntent.TRANSFER;
             }
 
             @Override
@@ -143,6 +146,18 @@ public abstract class ForwardingListener {
             @Override
             public Unsafe unsafe() {
                 return (Unsafe) snap.unsupported("Unsafe is not supported in Snap!");
+            }
+
+            @Override
+            public CompletableFuture<byte[]> sendData(String channel, byte[] data) {
+                if (connection instanceof LoginPhaseConnection loginPhaseConnection) {
+                    CompletableFuture<byte[]> future = new CompletableFuture<>();
+                    loginPhaseConnection.sendLoginPluginMessage(SnapUtils.createChannelIdentifier(channel), data, future::complete);
+                    return future;
+                }
+                // Not supported for generic InboundConnection
+                snap.unsupported("Cannot send plugin message data for " + connection.getClass().getSimpleName() + " in Snap!");
+                return CompletableFuture.completedFuture(new byte[0]);
             }
         };
     }

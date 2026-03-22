@@ -7,7 +7,7 @@ This is the Seriously Necessary Adapter Plugin to enable plugins written against
 
 Simply add the Bungee plugins into the plugins folder inside the Snap plugin folder.
 
-Snap will use it's own instance of BungeeCord's plugin manager to load the plugins 
+Snap will use its own instance of BungeeCord's plugin manager to load the plugins 
  from there and translate BungeeCord methods, classes as well as event calls to the 
  respective Velocity ones and vice versa.
 
@@ -17,7 +17,7 @@ Originally I wanted to document the Velocity equivalents to Bungee events, metho
  and classes. This evolved into the idea of writing a converter for source code which
  led me to decide to try to make a plugin which can directly load Bungee plugins.
  
-Seeing as the proxies don't have too much logic that seems to have worked although
+Seeing as the proxies don't have too much logic that seems to have worked, although
  it is definitely a lot more inefficient than just running native Velocity plugins 
  due lots of classes being in need of getting translated on the fly.
  
@@ -50,7 +50,7 @@ If you are sure that the plugin will work fine otherwise then you can have it re
 - **Reconnect server functionality.** That's an inbuilt function in Bungee but better 
   suited for a plugin. The related methods will return `null` or set nothing. Instead
   of erroring.
-- **Scoreboards.** Velocity doesn't have API for them and I'm not going to create a 
+- **Scoreboards.** Velocity doesn't have API for them, and I'm not going to create a 
   packet based one. Maybe there will be a way to integrate in some plugin or Velocity 
   adds support in the future.
 - Some **ProxyConfig** settings don't exist on Velocity or aren't exposed in the API so 
@@ -62,10 +62,11 @@ If you are sure that the plugin will work fine otherwise then you can have it re
   PluginManager APIs and as dependencies. Their classes should be accessible though.
 - Some connection handling and related events might not work 100% exactly like on 
   Bungee. They are as close as possible though but if you already have to fiddle with 
-  that then its best to create a standalone Velocity plugin tbh.
+  that then it's best to create a standalone Velocity plugin tbh.
+- Transfer detection only works in online-mode
 - Some events don't work 100% or not at all.  
-  Not working: `TabCompleteEvent`, `ProxyDefineCommandEvent`, `ProxyExceptionEvent`.  
-  Only partially: `ServerDisconnectEvent` (only triggers on kicks),
+  Not working: `ProxyDefineCommandEvent`, `ProxyExceptionEvent`.  
+  Only partially: `TabCompleteEvent` and `TabCompleteResponseEvent` (only work on 1.21.2 or below), `ServerDisconnectEvent` (only triggers on kicks),
   `ClientConnectEvent` (uses Velocity's `LoginEvent` with `PostOrder.FIRST`)
   `ConnectionInitEvent` (uses Velocity's `LoginEvent` with `PostOrder.EARLY`)
 - **Unsafe** doesn't work.
@@ -80,7 +81,7 @@ You can download the jar via [GitHub releases](https://github.com/Phoenix616/Sna
 For the start trying out the plugin and reporting what other plugins work and don't work
  would already help a ton figuring out what work is still needed.
  
-Of course I would also appreciate [monetary help](https://tip.phoenix616.dev) if the plugin
+Of course, I would also appreciate [monetary help](https://tip.phoenix616.dev) if the plugin
  has helped you transition to Velocity either by directly using it or referencing its code to 
  adapt Bungee plugins to get running on Velocity natively. (Did you know that GitHub is still 
  doubling donations to [my GitHub Sponsors page](https://ghsponsor.phoenix616.dev)? 😉)

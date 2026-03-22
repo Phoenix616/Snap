@@ -3,5 +3,5 @@
   "name": "Snap",
   "version": "${minecraft.plugin.version}",
   "main": "de.themoep.snap.Snap",
-  "authors": ["Phoenix616"]
+  "authors": ["Phoenix616", "tush2912"]
 }

@@ -297,14 +297,16 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public ServerInfo constructServerInfo(String name, InetSocketAddress address, String motd, boolean restricted) {
-        // TODO: Server info support
-        return (ServerInfo) snap.unsupported();
+        com.velocitypowered.api.proxy.server.ServerInfo velocityInfo = new com.velocitypowered.api.proxy.server.ServerInfo(name, address);
+        return snap.getServerInfo(snap.getProxy().registerServer(velocityInfo));
     }
 
     @Override
     public ServerInfo constructServerInfo(String name, SocketAddress address, String motd, boolean restricted) {
-        // TODO: Server info support
-        return (ServerInfo) snap.unsupported();
+        if (address instanceof InetSocketAddress inetSocketAddress) {
+            return constructServerInfo(name, inetSocketAddress, motd, restricted);
+        }
+        return (ServerInfo) snap.unsupported("Cannot construct server info from " + address.getClass().getName());
     }
 
     @Override

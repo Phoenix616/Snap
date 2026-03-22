@@ -4,3 +4,5 @@ out
 gen
 target/
 dependency-reduced-pom.xml
+bin/
+.vscode/
