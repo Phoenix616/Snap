@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +43,6 @@ public class Snap {
     private final Map<UUID, SnapPlayer> players = new ConcurrentHashMap<>();
     private final Map<String, SnapPlayer> playerNames = new ConcurrentHashMap<>();
     private final Map<String, SnapServerInfo> servers = new ConcurrentHashMap<>();
-    private final Set<UUID> transferred = ConcurrentHashMap.newKeySet();
 
     private final Table<UUID, Key, CompletableFuture<byte[]>> cookieRequests = HashBasedTable.create();
 
@@ -164,7 +162,6 @@ public class Snap {
         players.remove(player.getUniqueId());
         playerNames.remove(player.getUsername());
         cookieRequests.row(player.getUniqueId()).clear();
-        transferred.remove(player.getUniqueId());
     }
 
     public CompletableFuture<byte[]> retrieveCookie(InboundConnection connection, String key) {
@@ -194,13 +191,5 @@ public class Snap {
             return true;
         }
         return false;
-    }
-
-    public void markTransferred(Player player) {
-        transferred.add(player.getUniqueId());
-    }
-
-    public boolean isTransferred(UUID playerId) {
-        return transferred.contains(playerId);
     }
 }

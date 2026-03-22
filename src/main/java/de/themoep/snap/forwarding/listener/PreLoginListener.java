@@ -20,7 +20,10 @@ package de.themoep.snap.forwarding.listener;
 
 import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.network.HandshakeIntent;
+import com.velocitypowered.api.proxy.LoginPhaseConnection;
 import de.themoep.snap.Snap;
+import de.themoep.snap.SnapUtils;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -110,7 +113,7 @@ public class PreLoginListener extends ForwardingListener {
 
             @Override
             public boolean isTransferred() {
-                return snap.isTransferred(event.getUniqueId());
+                return event.getConnection().getHandshakeIntent() == HandshakeIntent.TRANSFER;
             }
 
             @Override
@@ -155,7 +158,13 @@ public class PreLoginListener extends ForwardingListener {
 
             @Override
             public CompletableFuture<byte[]> sendData(String channel, byte[] data) {
-                // Not supported during pre-login
+                if (event.getConnection() instanceof LoginPhaseConnection loginPhaseConnection) {
+                    CompletableFuture<byte[]> future = new CompletableFuture<>();
+                    loginPhaseConnection.sendLoginPluginMessage(SnapUtils.createChannelIdentifier(channel), data, future::complete);
+                    return future;
+                }
+                // Not supported for generic InboundConnection
+                snap.unsupported("Cannot send plugin message data for " + event.getConnection().getClass().getSimpleName() + " during the PreLoginEvent in Snap!");
                 return CompletableFuture.completedFuture(new byte[0]);
             }
         }, (e, t) -> {

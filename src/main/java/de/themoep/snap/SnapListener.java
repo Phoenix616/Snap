@@ -18,16 +18,12 @@ package de.themoep.snap;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.ConnectionHandshakeEvent;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.player.CookieReceiveEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
-import com.velocitypowered.api.network.HandshakeIntent;
-import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.util.GameProfile;
 
 import java.util.UUID;
@@ -42,21 +38,14 @@ public class SnapListener {
         this.snap = snap;
     }
 
-    @Subscribe
-    public void onHandshake(ConnectionHandshakeEvent event) {
-        if (event.getIntent() == HandshakeIntent.TRANSFER && event.getConnection() instanceof Player player) {
-            snap.markTransferred(player);
-        }
-    }
-
-    @Subscribe(order = PostOrder.FIRST)
+    @Subscribe(priority = -100)
     public void onPlayerConnect(LoginEvent event) {
         if (event.getResult().isAllowed()) {
             snap.getPlayer(event.getPlayer());
         }
     }
 
-    @Subscribe(order = PostOrder.LAST)
+    @Subscribe(priority = 100)
     public void onPlayerConnectLast(LoginEvent event) {
         if (!event.getResult().isAllowed()) {
             snap.getPlayers().remove(event.getPlayer().getUniqueId());
@@ -64,7 +53,7 @@ public class SnapListener {
         }
     }
 
-    @Subscribe(order = PostOrder.LAST)
+    @Subscribe(priority = 100)
     public void onPlayerQuit(DisconnectEvent event) {
         snap.invalidate(event.getPlayer());
     }

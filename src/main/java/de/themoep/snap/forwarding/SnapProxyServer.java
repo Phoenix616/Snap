@@ -303,7 +303,10 @@ public class SnapProxyServer extends ProxyServer {
 
     @Override
     public ServerInfo constructServerInfo(String name, SocketAddress address, String motd, boolean restricted) {
-        return constructServerInfo(name, (InetSocketAddress) address, motd, restricted);
+        if (address instanceof InetSocketAddress inetSocketAddress) {
+            return constructServerInfo(name, inetSocketAddress, motd, restricted);
+        }
+        return (ServerInfo) snap.unsupported("Cannot construct server info from " + address.getClass().getName());
     }
 
     @Override

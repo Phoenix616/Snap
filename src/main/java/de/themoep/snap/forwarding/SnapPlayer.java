@@ -18,6 +18,7 @@ package de.themoep.snap.forwarding;
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.velocitypowered.api.network.HandshakeIntent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.util.ModInfo;
@@ -113,7 +114,7 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
 
             @Override
             public boolean isTransferred() {
-                return snap.isTransferred(player.getUniqueId());
+                return player.getHandshakeIntent() == HandshakeIntent.TRANSFER;
             }
 
             @Override
