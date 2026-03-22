@@ -155,6 +155,12 @@ public class SnapPlayer extends SnapCommandSender implements ProxiedPlayer {
             public Unsafe unsafe() {
                 return (Unsafe) snap.unsupported("Unsafe is not supported by Snap!");
             }
+
+            @Override
+            public CompletableFuture<byte[]> sendData(String channel, byte[] data) {
+                SnapPlayer.this.sendData(channel, data);
+                return CompletableFuture.completedFuture(new byte[0]);
+            }
         };
         displayName = player.getUsername();
     }

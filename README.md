@@ -1,7 +1,9 @@
-# Snap!
+# Snap! 2.0 Beta (Java 21 Edition)
 
 This is the Seriously Necessary Adapter Plugin to enable plugins written against the
  BungeeCord or Waterfall API to load and (kinda) run on [Velocity](https://velocitypowered.com/). 👀
+ 
+ 🎉 **Now natively modernized for Velocity 3.5.0+ and Java 21**, with massive compatibility fixes!
 
 ## How?
 
@@ -64,7 +66,7 @@ If you are sure that the plugin will work fine otherwise then you can have it re
   Bungee. They are as close as possible though but if you already have to fiddle with 
   that then its best to create a standalone Velocity plugin tbh.
 - Some events don't work 100% or not at all.  
-  Not working: `TabCompleteEvent`, `ProxyDefineCommandEvent`, `ProxyExceptionEvent`.  
+  Not working: `ProxyDefineCommandEvent`, `ProxyExceptionEvent`.  
   Only partially: `ServerDisconnectEvent` (only triggers on kicks),
   `ClientConnectEvent` (uses Velocity's `LoginEvent` with `PostOrder.FIRST`)
   `ConnectionInitEvent` (uses Velocity's `LoginEvent` with `PostOrder.EARLY`)
@@ -72,8 +74,8 @@ If you are sure that the plugin will work fine otherwise then you can have it re
 
 ## Sounds awesome! How can I get it?
 
-You can download the jar via [GitHub releases](https://github.com/Phoenix616/Snap/releases)
- or get builds from the latest commits from the [Minebench.de Jenkins](https://ci.minebench.de/job/Snap/).
+You can download the jar via [GitHub releases](https://github.com/tush2912/Snap/releases)
+ or get builds from the latest commits from your build process.
  
 ## How can I support the project?
 

@@ -51,6 +51,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.event.EventBus;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
 
@@ -87,9 +88,25 @@ public class SnapBungeeAdapter {
         pluginManager = new PluginManager(snapProxy);
 
         // Replace Yaml instance with one with proper class loader
+        // Use reflection to handle both SnakeYAML 1.x and 2.x constructors
         Field fYaml = pluginManager.getClass().getDeclaredField("yaml");
         fYaml.setAccessible(true);
-        org.yaml.snakeyaml.constructor.Constructor constructor = new CustomClassLoaderConstructor(snap.getClass().getClassLoader());
+        org.yaml.snakeyaml.constructor.Constructor constructor;
+        try {
+            // SnakeYAML 2.x: CustomClassLoaderConstructor(ClassLoader, LoaderOptions)
+            java.lang.reflect.Constructor<?> ctor = CustomClassLoaderConstructor.class
+                    .getConstructor(ClassLoader.class, LoaderOptions.class);
+            constructor = (org.yaml.snakeyaml.constructor.Constructor) ctor.newInstance(snap.getClass().getClassLoader(), new LoaderOptions());
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            // SnakeYAML 1.x: CustomClassLoaderConstructor(ClassLoader)
+            try {
+                java.lang.reflect.Constructor<?> ctor = CustomClassLoaderConstructor.class
+                        .getConstructor(ClassLoader.class);
+                constructor = (org.yaml.snakeyaml.constructor.Constructor) ctor.newInstance(snap.getClass().getClassLoader());
+            } catch (Exception ex) {
+                throw new RuntimeException("Failed to initialize SnakeYAML", ex);
+            }
+        }
         PropertyUtils properties = constructor.getPropertyUtils();
         properties.setSkipMissingProperties(true);
         constructor.setPropertyUtils(properties);
@@ -130,7 +147,7 @@ public class SnapBungeeAdapter {
         addListener(new ServerKickListener(snap));
         addListener(new ServerSwitchListener(snap));
         addListener(new SettingsChangedListener(snap));
-        // TODO addListener(tnew TabCompleteListener(snap)); no real Velocity equivalent
+        addListener(new de.themoep.snap.forwarding.listener.TabCompleteListener(snap));
         addListener(new TabCompleteResponseListener(snap));
     }
 

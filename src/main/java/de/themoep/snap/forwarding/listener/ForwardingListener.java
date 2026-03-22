@@ -144,6 +144,12 @@ public abstract class ForwardingListener {
             public Unsafe unsafe() {
                 return (Unsafe) snap.unsupported("Unsafe is not supported in Snap!");
             }
+
+            @Override
+            public CompletableFuture<byte[]> sendData(String channel, byte[] data) {
+                // Not supported for generic InboundConnection
+                return CompletableFuture.completedFuture(new byte[0]);
+            }
         };
     }
 }
